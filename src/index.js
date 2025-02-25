@@ -97,7 +97,9 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             throw new Error('Prompt template not found. Please run ai-dataset-generator init first.');
         }
         
-        const { processChunk, config } = await import(promptTemplatePath);
+        const { processChunk, config: promptConfig } = await import(promptTemplatePath);
+        // Atualizar config com valores do prompt-template
+        config = promptConfig;
 
         // Load template
         const templatePath = path.join(path.dirname(inputDir), 'dataset-template.jsonl');
@@ -239,48 +241,55 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
 }
 
 function splitIntoChunks(text, targetChunks = null) {
-    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+    // Configurações do sliding window
+    const OVERLAP_SIZE = Math.floor(config.chunkSize * 0.3); // 30% de overlap
+    const EFFECTIVE_CHUNK_SIZE = config.chunkSize - OVERLAP_SIZE;
+
+    // Dividir o texto em entradas do dicionário
+    const entries = text.split(/\n(?=\d+\.)/).filter(entry => entry.trim());
     
-    // If no target chunks specified, use configured chunk size
-    if (!targetChunks) {
-        const chunks = [];
-        let currentChunk = '';
-        let currentSentences = 0;
-
-        for (const sentence of sentences) {
-            // Verificar limites de tamanho e número de sentenças
-            if ((currentChunk + sentence).length <= config.chunkSize && 
-                currentSentences < config.maxSentences) {
-                currentChunk += (currentChunk ? ' ' : '') + sentence;
-                currentSentences++;
-            } else {
-                // Só adiciona o chunk se tiver o mínimo de sentenças
-                if (currentChunk && currentSentences >= config.minSentences) {
-                    chunks.push(currentChunk);
-                }
-                currentChunk = sentence;
-                currentSentences = 1;
-            }
-        }
-        
-        // Adiciona o último chunk se tiver o mínimo de sentenças
-        if (currentChunk && currentSentences >= config.minSentences) {
-            chunks.push(currentChunk);
-        }
-        return chunks;
-    }
-
-    // Mesmo com targetChunks, respeitar as configurações de tamanho
     const chunks = [];
-    let currentChunk = '';
-    let currentSentences = 0;
-    let chunkCount = 0;
+    let currentPosition = 0;
 
-    for (const sentence of sentences) {
-        // Se já atingiu o número de chunks desejado, parar
-        if (targetChunks && chunkCount >= targetChunks) {
+    while (currentPosition < entries.length) {
+        let currentChunk = '';
+        let entryCount = 0;
+        let i = currentPosition;
+
+        // Construir o chunk principal
+        while (i < entries.length) {
+            const nextEntry = entries[i];
+            if (currentChunk.length + nextEntry.length > EFFECTIVE_CHUNK_SIZE && entryCount >= config.minSentences) {
+                break;
+            }
+            currentChunk += (currentChunk ? '\n' : '') + nextEntry;
+            entryCount++;
+            i++;
+        }
+
+        // Adicionar overlap com próximas entradas
+        let overlapText = '';
+        let j = i;
+        while (j < entries.length && overlapText.length < OVERLAP_SIZE) {
+            overlapText += '\n' + entries[j];
+            j++;
+        }
+
+        // Adicionar o chunk com overlap
+        if (currentChunk) {
+            chunks.push(currentChunk + overlapText);
+        }
+
+        // Avançar a posição, pulando apenas as entradas do chunk principal
+        currentPosition += Math.max(1, entryCount);
+
+        // Se temos um limite de chunks e já atingimos, parar
+        if (targetChunks && chunks.length >= targetChunks) {
             break;
         }
+    }
+
+    return chunks;
 
         // Verificar limites de tamanho e número de sentenças
         if ((currentChunk + sentence).length <= config.chunkSize && 

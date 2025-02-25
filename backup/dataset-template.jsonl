@@ -1,6 +1,4 @@
-{
-    "messages": [
-        {"role": "user", "content": "What does 'ahete-ahe' mean in Yanomami?"},
-        {"role": "assistant", "content": "Here's the meaning of 'ahete-ahe' in Yanomami:\n\n• Translation: 'to approach, to come closer'\n\n• Grammar: Intransitive verb\n\n• Usage Forms:\n  - aheai (inchoative): to begin approaching\n  - aheo: to be in the process of approaching\n  - ahetou: to be near\n\n• Examples:\n  - \"thë aheai\": it begins to approach\n  - \"ya aheo\": I am approaching\n\n• Cultural Context: Used to describe physical proximity and movement"}
-    ]
-}
+{"role": "user", "content": "What does 'ahete-ahe' mean in Yanomami?"},
+{"role": "assistant", "content": "Here's the meaning of 'ahete-ahe' in Yanomami:\n\n• Translation: 'to approach, to come closer'\n\n• Grammar: Intransitive verb\n\n• Usage Forms:\n  - aheai (inchoative): to begin approaching\n  - aheo: to be in the process of approaching\n  - ahetou: to be near\n\n• Examples:\n  - \"thë aheai\": it begins to approach\n  - \"ya aheo\": I am approaching\n\n• Cultural Context: Used to describe physical proximity and movement"}
+
+{"messages":[{"role":"human","content":"What does 'ahete-ahe' mean in Yanomami?"},{"role":"assistant","content":"Here's the meaning of 'ahete-ahe' in Yanomami:\n\n• Translation: 'to approach, to come closer'\n\n• Grammar: Intransitive verb\n\n• Usage Forms:\n  - aheai (inchoative): to begin approaching\n  - aheo: to be in the process of approaching\n  - ahetou: to be near\n\n• Examples:\n  - \"thë aheai\": it begins to approach\n  - \"ya aheo\": I am approaching\n\n• Cultural Context: Used to describe physical proximity and movement"}]}

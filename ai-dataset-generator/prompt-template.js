@@ -11,9 +11,9 @@ import { linesCoverage, usedWords } from '../src/index.js';
 
 // Configurações do processamento
 export const config = {
-    chunkSize: 10, // Tamanho máximo do chunk em caracteres
-    minSentences: 1,  // Mínimo de sentenças por chunk
-    maxSentences: 1  // Máximo de sentenças por chunk
+    chunkSize: 1000,    // Caracteres suficientes para uma entrada completa do dicionário
+    minSentences: 3,    // Mínimo de sentenças para capturar a definição e alguns exemplos
+    maxSentences: 10    // Máximo de sentenças para não pegar entradas adjacentes
 };
 
 export async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
@@ -43,19 +43,22 @@ export async function processChunk(chunk, template, anthropic, lineStart = 0, cu
 
 ${chunk}
 
-Create a Q&A pair about ONE of these unused words: ${unusedWords.join(', ')}
+Create an entry about ONE of these unused words: ${unusedWords.join(', ')}
 
-Follow this exact template format:
-${template}
+Respond with a JSON object containing these fields:
+- word: the Yanomami word
+- translation: English translation
+- grammar: grammatical information
+- examples: array of example sentences
 
 Make sure to:
 1. Choose ONE unused word from the list
 2. Provide accurate translation
 3. Include grammar information
-4. Add relevant usage examples
-5. Include cultural context if present
+4. Add 2-3 relevant usage examples
+5. Keep examples short and clear
 
-Respond only with the JSONL formatted entry.`;
+Respond ONLY with the JSON object, no additional text.`;
 
         console.log('\n   📤 Text sent to AI:');
         console.log('   ' + prompt.split('\n').join('\n   '));
@@ -73,9 +76,9 @@ Respond only with the JSONL formatted entry.`;
             // Create the API request promise
             const apiRequest = anthropic.messages.create({
                 model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
-                max_tokens: 40,
+                max_tokens: 1000,  // Suficiente para uma entrada de dicionário com exemplos
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.2 // Reduzir temperatura para respostas mais consistentes
+                temperature: 0.1   // Temperatura muito baixa para máxima consistência
             });
 
             // Race between the timeout and the API request
@@ -103,25 +106,16 @@ Respond only with the JSONL formatted entry.`;
                 return null;
             }
 
-            // Validar conteúdo das mensagens
-            const question = entry.messages[0].content;
-            const answer = entry.messages[1].content;
-            
-            if (!question || !answer || question.length < 10 || answer.length < 10) {
-                console.log('   ⚠️ Invalid message content');
+            // Validar conteúdo
+            if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
+                console.log('   ⚠️ Invalid content');
                 return null;
             }
 
             console.log('   ✅ Valid entry generated');
             
-            // Extract the word that was used
-            const questionMatch = question.match(/What does '([^']+)' mean/i);
-            if (!questionMatch) {
-                console.log('   ⚠️ Could not extract used word');
-                return null;
-            }
-
-            const usedWord = questionMatch[1].toLowerCase();
+            // Track used word
+            const usedWord = entry.word.toLowerCase();
             usedWords.add(usedWord);
             console.log(`   📝 Added '${usedWord}' to used words list`);
 
@@ -129,25 +123,39 @@ Respond only with the JSONL formatted entry.`;
             const lines = chunk.split('\n');
             const fileCoverage = linesCoverage.get(currentFile);
 
-            // Mark lines as used if they contain the used word or if their content appears in the answer
+            // Mark lines as used if they contain the used word or if their content appears in examples
             lines.forEach((line, idx) => {
                 const lineIdx = lineStart + idx;
                 if (usedWord && line.toLowerCase().includes(usedWord)) {
                     fileCoverage.add(lineIdx);
                     console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
                 }
-                // Also mark lines that contain significant parts of the answer
+                // Also mark lines that contain significant parts of examples
                 const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
                 for (const word of words) {
-                    if (answer.includes(word)) {
+                    if (entry.examples.some(example => example.toLowerCase().includes(word))) {
                         fileCoverage.add(lineIdx);
-                        console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from answer)`);
+                        console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
                         break;
                     }
                 }
             });
 
-            return entry;
+            // Convert to JSONL format
+            const jsonlEntry = {
+                messages: [
+                    {
+                        role: 'user',
+                        content: `What does '${entry.word}' mean in Yanomami?`
+                    },
+                    {
+                        role: 'assistant',
+                        content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => `- ${ex}`).join('\n')}`
+                    }
+                ]
+            };
+
+            return jsonlEntry;
         } catch (error) {
             console.log(`   ⚠️ Error processing response: ${error.message}`);
             return null;
@@ -167,7 +175,8 @@ Respond only with the JSONL formatted entry.`;
  * @returns {boolean} Whether the entry is valid
  */
 function isValidEntry(entry) {
-    return entry?.messages?.length === 2 && 
-           entry.messages[0].role === 'user' && 
-           entry.messages[1].role === 'assistant';
+    return entry?.word && 
+           entry?.translation && 
+           entry?.grammar && 
+           Array.isArray(entry?.examples);
 }
