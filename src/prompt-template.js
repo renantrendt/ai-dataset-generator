@@ -39,27 +39,46 @@ export async function processChunk(chunk, template, anthropic, lineStart = 0, cu
         }
         
         // Customize this prompt based on your needs
-        const prompt = `You are helping create a Yanomami language learning dataset. Given these dictionary entries:
+        const prompt = `You are a Yanomami language expert. Create a dataset entry following these EXACT instructions:
 
+Input Dictionary Text:
 ${chunk}
 
-Create an entry about ONE of these unused words: ${unusedWords.join(', ')}
+Available Words: ${unusedWords.join(', ')}
 
-Respond with a JSON object containing these fields:
-- word: the Yanomami word
-- translation: English translation
-- grammar: grammatical information
-- examples: array of example sentences
+Rules:
+1. Choose ONE main Yanomami word (not Spanish/English)
+2. Extract information ONLY from the dictionary text
+3. Include related forms (e.g., if 'ahemarei', include 'aheamai')
+4. Keep ALL grammatical markers (e.g., 'perf.', 'fact.')
+5. Use examples EXACTLY as they appear in text
 
-Make sure to:
-1. Choose ONE unused word from the list
-2. Provide accurate translation
-3. Include grammar information and any cross-references from the entries
-4. Add 2-3 relevant usage examples
-5. Keep examples short and clear
-6. If the word has related forms or variations mentioned in other entries, include that information
+Format your response as a VALID JSON object with this EXACT structure:
+{
+  "word": "main_yanomami_word",
+  "related_forms": [
+    "form1",
+    "form2"
+  ],
+  "translation": "exact_translation_from_dictionary",
+  "grammar": "grammatical_info_from_dictionary",
+  "examples": [
+    {
+      "yanomami": "yanomami_example_from_text",
+      "spanish": "spanish_translation",
+      "english": "english_translation"
+    }
+  ]
+}
 
-Respond ONLY with the JSON object, no additional text.`;
+IMPORTANT JSON RULES:
+1. Every string MUST be in double quotes
+2. Arrays/objects MUST have commas between items
+3. NO trailing commas after last item
+4. NO comments or extra text
+5. NO line breaks within strings
+
+Respond ONLY with the JSON object.`;
 
         console.log('\n   📤 Text sent to AI:');
         console.log('   ' + prompt.split('\n').join('\n   '));
@@ -100,18 +119,61 @@ Respond ONLY with the JSON object, no additional text.`;
         // Remover caracteres que podem corromper o JSON
         responseText = responseText.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
         
-        try {
-            const entry = JSON.parse(responseText);
-            if (!isValidEntry(entry)) {
-                console.log('   ⚠️ Invalid entry format');
-                return null;
-            }
+        // Tenta processar a resposta com até 3 tentativas
+        let maxRetries = 3;
+        let currentTry = 1;
+        let entry = null;
 
-            // Validar conteúdo
-            if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
-                console.log('   ⚠️ Invalid content');
-                return null;
+        while (currentTry <= maxRetries) {
+            try {
+                entry = JSON.parse(responseText);
+                break; // Se conseguiu fazer parse, sai do loop
+            } catch (error) {
+                console.log(`   ⚠️ Try ${currentTry}/${maxRetries}: JSON Parse Error - ${error.message}`);
+                
+                if (currentTry < maxRetries) {
+                    // Criar prompt de correção
+                    const fixPrompt = `The previous response had a JSON error: ${error.message}
+
+Original response:
+${responseText}
+
+Please fix the JSON format issues and return ONLY a valid JSON object following these rules:
+1. Every string MUST be in double quotes
+2. Arrays/objects MUST have commas between items
+3. NO trailing commas after last item
+4. NO comments or extra text
+5. NO line breaks within strings`;
+
+                    console.log('   🔄 Requesting JSON fix...');
+                    response = await anthropic.messages.create({
+                        model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
+                        max_tokens: 1000,
+                        messages: [{ role: "user", content: fixPrompt }],
+                        temperature: 0.1
+                    });
+
+                    responseText = response.content[0].text.trim();
+                    responseText = responseText.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+                    currentTry++;
+                } else {
+                    console.log('   ❌ Max retries reached, skipping chunk');
+                    return null;
+                }
             }
+        }
+
+        // Validar estrutura e conteúdo
+        if (!isValidEntry(entry)) {
+            console.log('   ⚠️ Invalid entry format');
+            return null;
+        }
+
+        // Validar campos obrigatórios
+        if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
+            console.log('   ⚠️ Invalid content - missing required fields');
+            return null;
+        }
 
             console.log('   ✅ Valid entry generated');
             

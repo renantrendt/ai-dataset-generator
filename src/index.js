@@ -290,30 +290,6 @@ function splitIntoChunks(text, targetChunks = null) {
     }
 
     return chunks;
-
-        // Verificar limites de tamanho e número de sentenças
-        if ((currentChunk + sentence).length <= config.chunkSize && 
-            currentSentences < config.maxSentences) {
-            currentChunk += (currentChunk ? ' ' : '') + sentence;
-            currentSentences++;
-        } else {
-            // Só adiciona o chunk se tiver o mínimo de sentenças
-            if (currentChunk && currentSentences >= config.minSentences) {
-                chunks.push(currentChunk);
-                chunkCount++;
-            }
-            currentChunk = sentence;
-            currentSentences = 1;
-        }
-    }
-    
-    // Adiciona o último chunk se tiver o mínimo de sentenças
-    if (currentChunk && currentSentences >= config.minSentences && 
-        (!targetChunks || chunkCount < targetChunks)) {
-        chunks.push(currentChunk);
-    }
-
-    return chunks;
 }
 
 export async function validateDataset(datasetPath) {
