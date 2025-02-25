@@ -142,11 +142,11 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
                 try {
                     // Calcular lineStart baseado no índice do chunk
                     const lineStart = i * sentencesPerChunk;
-                    const entry = await processChunk(chunk, template, anthropic, lineStart, file);
-                    if (entry) {
-                        dataset.push(entry);
-                        totalChunks++;
-                        console.log(`   ✨ Success! Total valid entries: ${totalChunks}`);
+                    const entries = await processChunk(chunk, template, anthropic, lineStart, file);
+                    if (entries && entries.length > 0) {
+                        dataset.push(...entries);
+                        totalChunks += entries.length;
+                        console.log(`   ✨ Success! Added ${entries.length} entries. Total valid entries: ${totalChunks}`);
                     } else {
                         skippedChunks++;
                         console.log(`   ⚠️ Chunk skipped: Invalid or empty response`);
