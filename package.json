@@ -8,7 +8,9 @@
     "ai-dataset-generator": "src/cli.js"
   },
   "scripts": {
-    "postinstall": "node src/setup.js"
+    "postinstall": "node src/setup.js",
+    "init": "node src/init.js",
+    "generate": "node src/cli.js"
   },
   "keywords": [
     "ai",

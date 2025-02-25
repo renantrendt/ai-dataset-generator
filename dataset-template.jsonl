@@ -1,19 +1,3 @@
-# Example 1: Standard conversation format (Claude/ChatGPT style)
-{"messages":[{"role":"user","content":"What is the capital of France?"},{"role":"assistant","content":"The capital of France is Paris."}]}
-
-# Example 2: Simple prompt-completion format
-{"prompt":"Translate to Spanish: Hello","completion":"¡Hola!"}
-
-# Example 3: Context-based format
-{"context":"Customer service interaction","input":"I need help with my order","output":"I'll be happy to help you with your order. Could you please provide your order number?"}
-
-# Example 4: Instruction-based format
-{"instruction":"Translate the following English text to Spanish","input":"Good morning","output":"Buenos días"}
-
-# Example 5: Classification format
-{"text":"This product is amazing!","label":"positive"}
-
-# Example 6: Multi-turn conversation
-{"messages":[{"role":"user","content":"What's the weather like?"},{"role":"assistant","content":"I don't have access to current weather information. Would you like to know your local forecast?"},{"role":"user","content":"Yes, for New York"},{"role":"assistant","content":"I apologize, but I don't have access to real-time weather data. You can check your local weather service or weather apps for accurate New York weather information."}]}
-
-# Note: Choose or modify these formats based on your specific fine-tuning needs
+{"messages":[{"role":"human","content":"What is the capital of France?"},{"role":"assistant","content":"The capital of France is Paris. It is one of the most populous cities in Europe and serves as France's major economic, cultural, and political center."}]}
+{"messages":[{"role":"human","content":"How do I make a chocolate cake?"},{"role":"assistant","content":"Here's a basic chocolate cake recipe:\n1. Mix dry ingredients (flour, cocoa, sugar)\n2. Add wet ingredients (eggs, milk, oil)\n3. Bake at 350°F for 30 minutes\n4. Let cool before frosting"}]}
+{"messages":[{"role":"human","content":"Explain quantum computing"},{"role":"assistant","content":"Quantum computing uses quantum mechanics principles like superposition and entanglement to perform calculations. Unlike classical computers that use bits (0 or 1), quantum computers use qubits that can exist in multiple states simultaneously."}]}
