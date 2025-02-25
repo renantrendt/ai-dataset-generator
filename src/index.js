@@ -19,10 +19,10 @@ let config = {
 // Load environment variables from custom .env file
 function loadEnvConfig(inputDir) {
     // Try current directory first
-    const currentDirEnv = path.join(process.cwd(), '.dataset-generator.env');
-    const inputDirEnv = path.join(path.dirname(inputDir), '.dataset-generator.env');
+    const currentDirEnv = path.join(process.cwd(), '.env');
+    const inputDirEnv = path.join(path.dirname(inputDir), '.env');
     const homeDir = process.env.HOME || process.env.USERPROFILE;
-    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.dataset-generator.env');
+    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.env');
 
     // Try loading from different locations in order of preference
     const envPaths = [currentDirEnv, inputDirEnv, homeDirEnv];
@@ -43,7 +43,7 @@ function loadEnvConfig(inputDir) {
 function validateApiConfig() {
     const errors = [];
     if (!process.env.DATASET_GEN_ANTHROPIC_KEY && !process.env.DATASET_GEN_OPENAI_KEY) {
-        errors.push('❌ No API keys found. Please set either DATASET_GEN_ANTHROPIC_KEY or DATASET_GEN_OPENAI_KEY in .dataset-generator.env');
+        errors.push('❌ No API keys found. Please set either DATASET_GEN_ANTHROPIC_KEY or DATASET_GEN_OPENAI_KEY in .env');
     }
     if (process.env.DATASET_GEN_ANTHROPIC_KEY && !process.env.DATASET_GEN_ANTHROPIC_KEY.startsWith('sk-ant-')) {
         errors.push('❌ Invalid Claude API key format. Should start with "sk-ant-"');
@@ -66,7 +66,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         if (configErrors.length > 0) {
             console.error('\n⚠️ Configuration Issues:');
             configErrors.forEach(error => console.error(error));
-            console.log('\n💡 Tip: Check your .dataset-generator.env file in the workspace directory');
+            console.log('\n💡 Tip: Check your .env file in the workspace directory');
             throw new Error('Invalid configuration');
         }
 
@@ -241,49 +241,50 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
 }
 
 function splitIntoChunks(text, targetChunks = null) {
-    // Configurações do sliding window
-    const OVERLAP_SIZE = Math.floor(config.chunkSize * 0.3); // 30% de overlap
-    const EFFECTIVE_CHUNK_SIZE = config.chunkSize - OVERLAP_SIZE;
+    // Regex para identificar entradas completas do dicionário
+    const entryPattern = /^\d+\.[^\n]+(?:\n(?!\d+\.).*)*$/gm;
+    
+    // Encontrar todas as entradas completas
+    const entries = [];
+    let match;
+    while ((match = entryPattern.exec(text)) !== null) {
+        entries.push({
+            content: match[0],
+            start: match.index,
+            end: match.index + match[0].length
+        });
+    }
 
-    // Dividir o texto em entradas do dicionário
-    const entries = text.split(/\n(?=\d+\.)/).filter(entry => entry.trim());
+    // Se targetChunks for especificado, calcular quantas entradas por chunk
+    const entriesPerChunk = targetChunks ? Math.ceil(entries.length / targetChunks) : 3;
     
     const chunks = [];
-    let currentPosition = 0;
+    let currentChunk = [];
+    let currentSize = 0;
+    const MAX_CHUNK_SIZE = 4000; // Limite seguro para tokens
 
-    while (currentPosition < entries.length) {
-        let currentChunk = '';
-        let entryCount = 0;
-        let i = currentPosition;
-
-        // Construir o chunk principal
-        while (i < entries.length) {
-            const nextEntry = entries[i];
-            if (currentChunk.length + nextEntry.length > EFFECTIVE_CHUNK_SIZE && entryCount >= config.minSentences) {
-                break;
-            }
-            currentChunk += (currentChunk ? '\n' : '') + nextEntry;
-            entryCount++;
-            i++;
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        
+        // Verificar se a entrada atual cabe no chunk
+        if (currentChunk.length >= entriesPerChunk || 
+            (currentSize + entry.content.length > MAX_CHUNK_SIZE && currentChunk.length > 0)) {
+            // Adicionar chunk atual à lista e começar novo chunk
+            chunks.push(currentChunk.map(e => e.content).join('\n'));
+            currentChunk = [];
+            currentSize = 0;
         }
 
-        // Adicionar overlap com próximas entradas
-        let overlapText = '';
-        let j = i;
-        while (j < entries.length && overlapText.length < OVERLAP_SIZE) {
-            overlapText += '\n' + entries[j];
-            j++;
+        // Adicionar entrada ao chunk atual
+        currentChunk.push(entry);
+        currentSize += entry.content.length;
+
+        // Se é a última entrada, adicionar o chunk final
+        if (i === entries.length - 1 && currentChunk.length > 0) {
+            chunks.push(currentChunk.map(e => e.content).join('\n'));
         }
 
-        // Adicionar o chunk com overlap
-        if (currentChunk) {
-            chunks.push(currentChunk + overlapText);
-        }
-
-        // Avançar a posição, pulando apenas as entradas do chunk principal
-        currentPosition += Math.max(1, entryCount);
-
-        // Se temos um limite de chunks e já atingimos, parar
+        // Se atingimos o número alvo de chunks, parar
         if (targetChunks && chunks.length >= targetChunks) {
             break;
         }
