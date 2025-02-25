@@ -1,0 +1,28 @@
+{
+  "name": "ai-dataset-generator",
+  "version": "1.0.0",
+  "description": "A tool to generate AI fine-tuning datasets from text files",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "ai-dataset-generator": "src/cli.js"
+  },
+  "scripts": {
+    "postinstall": "node src/setup.js"
+  },
+  "keywords": [
+    "ai",
+    "dataset",
+    "fine-tuning",
+    "text-processing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.17.1",
+    "commander": "^11.1.0",
+    "dotenv": "^16.4.1",
+    "glob": "^10.3.10",
+    "mkdirp": "^3.0.1"
+  }
+}
