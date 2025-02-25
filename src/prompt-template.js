@@ -1,6 +1,81 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 /**
+ * Validates if an entry has the correct structure and required fields
+ * @param {Object} entry - The entry to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidEntry(entry) {
+    // Check if entry is an object
+    if (!entry || typeof entry !== 'object') {
+        console.log('   ⚠️ Entry is not an object');
+        return false;
+    }
+
+    // Check required fields
+    const requiredFields = ['word', 'translation', 'grammar', 'examples'];
+    for (const field of requiredFields) {
+        if (!entry[field]) {
+            console.log(`   ⚠️ Missing required field: ${field}`);
+            return false;
+        }
+    }
+
+    // Validate word
+    if (typeof entry.word !== 'string' || entry.word.trim().length === 0) {
+        console.log('   ⚠️ Invalid word field');
+        return false;
+    }
+
+    // Validate translation
+    if (typeof entry.translation !== 'string' || entry.translation.trim().length === 0) {
+        console.log('   ⚠️ Invalid translation field');
+        return false;
+    }
+
+    // Validate grammar
+    if (typeof entry.grammar !== 'string' || entry.grammar.trim().length === 0) {
+        console.log('   ⚠️ Invalid grammar field');
+        return false;
+    }
+
+    // Validate examples
+    if (!Array.isArray(entry.examples)) {
+        console.log('   ⚠️ Examples is not an array');
+        return false;
+    }
+
+    if (entry.examples.length === 0) {
+        console.log('   ⚠️ No examples provided');
+        return false;
+    }
+
+    // Validate each example
+    for (const example of entry.examples) {
+        if (typeof example === 'string') {
+            if (example.trim().length === 0) {
+                console.log('   ⚠️ Empty example string');
+                return false;
+            }
+        } else if (typeof example === 'object') {
+            if (!example.yanomami || !example.translation || 
+                typeof example.yanomami !== 'string' || 
+                typeof example.translation !== 'string' || 
+                example.yanomami.trim().length === 0 || 
+                example.translation.trim().length === 0) {
+                console.log('   ⚠️ Invalid example object structure');
+                return false;
+            }
+        } else {
+            console.log('   ⚠️ Invalid example type');
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Processes a chunk of text using Claude API to generate a structured dataset entry
  * @param {string} chunk - The text chunk to process
  * @param {string} template - The template format to follow
@@ -24,8 +99,6 @@ export async function processChunk(chunk, template, anthropic, lineStart = 0, cu
         const numLines = lines.length;
         console.log(`\n   📄 Chunk size: ${chunkSize} characters, ${numLines} lines`);
         console.log(`   📄 Lines from file: ${lineStart} to ${endLine}`);
-        console.log('   Text being processed:');
-        console.log('   ' + chunk.split('\n').map((line, i) => `   ${lineStart + i}: ${line}`).join('\n'));
         
         // Extract Yanomami words from the chunk (basic pattern, can be improved)
         const words = chunk.match(/[A-Za-zë\-]+/g) || [];
@@ -65,11 +138,24 @@ Format your response as a VALID JSON object with this EXACT structure:
   "examples": [
     {
       "yanomami": "yanomami_example_from_text",
-      "spanish": "spanish_translation",
-      "english": "english_translation"
+      "translation": "translation_of_example"
+    },
+    {
+      "yanomami": "another_yanomami_example",
+      "translation": "another_translation"
     }
   ]
 }
+
+NOTE: For examples array:
+1. Each example MUST be an object with 'yanomami' and 'translation' fields
+2. Each example MUST be separated by a comma
+3. The last example MUST NOT have a trailing comma
+4. Example: 
+   "examples": [
+     {"yanomami": "text1", "translation": "trans1"},
+     {"yanomami": "text2", "translation": "trans2"}
+   ]
 
 IMPORTANT JSON RULES:
 1. Every string MUST be in double quotes
@@ -175,56 +261,60 @@ Please fix the JSON format issues and return ONLY a valid JSON object following 
             return null;
         }
 
-            console.log('   ✅ Valid entry generated');
-            
-            // Track used word
-            const usedWord = entry.word.toLowerCase();
-            usedWords.add(usedWord);
-            console.log(`   📝 Added '${usedWord}' to used words list`);
+        console.log('   ✅ Valid entry generated');
+        
+        // Track used word
+        const usedWord = entry.word.toLowerCase();
+        usedWords.add(usedWord);
+        console.log(`   📝 Added '${usedWord}' to used words list`);
 
-            // Track which lines were used
-            const lines = chunk.split('\n');
-            const fileCoverage = linesCoverage.get(currentFile);
+        // Track which lines were used
+        const fileCoverage = linesCoverage.get(currentFile);
 
-            // Mark lines as used if they contain the used word or if their content appears in examples
-            lines.forEach((line, idx) => {
-                const lineIdx = lineStart + idx;
-                if (usedWord && line.toLowerCase().includes(usedWord)) {
+        // Mark lines as used if they contain the used word or if their content appears in examples
+        lines.forEach((line, idx) => {
+            const lineIdx = lineStart + idx;
+            if (usedWord && line.toLowerCase().includes(usedWord)) {
+                fileCoverage.add(lineIdx);
+                console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
+            }
+            // Also mark lines that contain significant parts of examples
+            const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            for (const word of words) {
+                if (entry.examples.some(example => 
+                    typeof example === 'string' ? 
+                        example.toLowerCase().includes(word) :
+                        example.yanomami.toLowerCase().includes(word) || 
+                        example.translation.toLowerCase().includes(word)
+                )) {
                     fileCoverage.add(lineIdx);
-                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
+                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
+                    break;
                 }
-                // Also mark lines that contain significant parts of examples
-                const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                for (const word of words) {
-                    if (entry.examples.some(example => example.toLowerCase().includes(word))) {
-                        fileCoverage.add(lineIdx);
-                        console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
-                        break;
-                    }
+            }
+        });
+
+        // Convert to JSONL format
+        const jsonlEntry = {
+            messages: [
+                {
+                    role: 'user',
+                    content: `What does '${entry.word}' mean in Yanomami?`
+                },
+                {
+                    role: 'assistant',
+                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => 
+                        typeof ex === 'string' ? 
+                            `- ${ex}` : 
+                            `- ${ex.yanomami} (${ex.translation})`
+                    ).join('\n')}`
                 }
-            });
+            ]
+        };
 
-            // Convert to JSONL format
-            const jsonlEntry = {
-                messages: [
-                    {
-                        role: 'user',
-                        content: `What does '${entry.word}' mean in Yanomami?`
-                    },
-                    {
-                        role: 'assistant',
-                        content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => `- ${ex}`).join('\n')}`
-                    }
-                ]
-            };
-
-            return jsonlEntry;
-        } catch (error) {
-            console.log(`   ⚠️ Error processing response: ${error.message}`);
-            return null;
-        }
+        return jsonlEntry;
     } catch (error) {
-        console.log(`   ⚠️ API Error: ${error.message}`);
+        console.log(`   ⚠️ Error processing response: ${error.message}`);
         if (error.response) {
             console.log('   📝 Error details:', error.response.data);
         }
@@ -238,8 +328,50 @@ Please fix the JSON format issues and return ONLY a valid JSON object following 
  * @returns {boolean} Whether the entry is valid
  */
 function isValidEntry(entry) {
-    return entry?.word && 
-           entry?.translation && 
-           entry?.grammar && 
-           Array.isArray(entry?.examples);
+    // Validar estrutura básica
+    if (!(
+        typeof entry === 'object' &&
+        entry !== null &&
+        typeof entry.word === 'string' &&
+        typeof entry.translation === 'string' &&
+        typeof entry.grammar === 'string' &&
+        Array.isArray(entry.examples)
+    )) {
+        console.log('   ⚠️ Basic structure validation failed');
+        return false;
+    }
+
+    // Validar array de exemplos
+    if (!entry.examples.every(example => {
+        if (typeof example === 'string') {
+            // Se for string, converter para objeto
+            entry.examples = entry.examples.map(ex => ({
+                yanomami: ex,
+                translation: ''
+            }));
+            return true;
+        }
+        const valid = (
+            typeof example === 'object' &&
+            example !== null &&
+            typeof example.yanomami === 'string' &&
+            typeof example.translation === 'string'
+        );
+        if (!valid) {
+            console.log('   ⚠️ Example validation failed:', example);
+        }
+        return valid;
+    })) {
+        return false;
+    }
+
+    // Validar related_forms se existir
+    if (entry.related_forms !== undefined && 
+        (!Array.isArray(entry.related_forms) || 
+         !entry.related_forms.every(form => typeof form === 'string'))) {
+        console.log('   ⚠️ Related forms validation failed');
+        return false;
+    }
+
+    return true;
 }

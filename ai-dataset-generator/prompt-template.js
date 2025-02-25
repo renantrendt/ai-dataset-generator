@@ -24,8 +24,6 @@ export async function processChunk(chunk, template, anthropic, lineStart = 0, cu
         const numLines = lines.length;
         console.log(`\n   📄 Chunk size: ${chunkSize} characters, ${numLines} lines`);
         console.log(`   📄 Lines from file: ${lineStart} to ${endLine}`);
-        console.log('   Text being processed:');
-        console.log('   ' + chunk.split('\n').map((line, i) => `   ${lineStart + i}: ${line}`).join('\n'));
         
         // Extract Yanomami words from the chunk (basic pattern, can be improved)
         const words = chunk.match(/[A-Za-zë\-]+/g) || [];
@@ -45,18 +43,31 @@ ${chunk}
 
 Create an entry about ONE of these unused words: ${unusedWords.join(', ')}
 
-Respond with a JSON object containing these fields:
-- word: the Yanomami word
-- translation: English translation
-- grammar: grammatical information
-- examples: array of example sentences
+Respond with a JSON object following this EXACT format:
+{
+  "word": "yanomami_word",
+  "translation": "english_translation",
+  "grammar": "grammatical_info",
+  "examples": [
+    "example1",
+    "example2",
+    "example3"
+  ]
+}
 
-Make sure to:
+Rules:
 1. Choose ONE unused word from the list
 2. Provide accurate translation
 3. Include grammar information
 4. Add 2-3 relevant usage examples
 5. Keep examples short and clear
+
+IMPORTANT JSON RULES:
+1. Every string MUST be in double quotes
+2. Arrays/objects MUST have commas between items
+3. NO trailing commas after last item
+4. NO comments or extra text
+5. NO line breaks within strings
 
 Respond ONLY with the JSON object, no additional text.`;
 
@@ -99,67 +110,112 @@ Respond ONLY with the JSON object, no additional text.`;
         // Remover caracteres que podem corromper o JSON
         responseText = responseText.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
         
-        try {
-            const entry = JSON.parse(responseText);
-            if (!isValidEntry(entry)) {
-                console.log('   ⚠️ Invalid entry format');
-                return null;
-            }
+        // Tenta processar a resposta com até 3 tentativas
+        let maxRetries = 3;
+        let currentTry = 1;
+        let entry = null;
 
-            // Validar conteúdo
-            if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
-                console.log('   ⚠️ Invalid content');
-                return null;
-            }
+        while (currentTry <= maxRetries) {
+            try {
+                entry = JSON.parse(responseText);
+                break; // Se conseguiu fazer parse, sai do loop
+            } catch (error) {
+                console.log(`   ⚠️ Try ${currentTry}/${maxRetries}: JSON Parse Error - ${error.message}`);
+                
+                if (currentTry < maxRetries) {
+                    // Criar prompt de correção
+                    const fixPrompt = `The previous response had a JSON error: ${error.message}
 
-            console.log('   ✅ Valid entry generated');
-            
-            // Track used word
-            const usedWord = entry.word.toLowerCase();
-            usedWords.add(usedWord);
-            console.log(`   📝 Added '${usedWord}' to used words list`);
+Original response:
+${responseText}
 
-            // Track which lines were used
-            const lines = chunk.split('\n');
-            const fileCoverage = linesCoverage.get(currentFile);
+Please fix the JSON format issues and return ONLY a valid JSON object following these rules:
+1. Every string MUST be in double quotes
+2. Arrays/objects MUST have commas between items
+3. NO trailing commas after last item
+4. NO comments or extra text
+5. NO line breaks within strings
+6. Examples array should look like this:
+   "examples": [
+     "example1",
+     "example2",
+     "example3"
+   ]
+`;
 
-            // Mark lines as used if they contain the used word or if their content appears in examples
-            lines.forEach((line, idx) => {
-                const lineIdx = lineStart + idx;
-                if (usedWord && line.toLowerCase().includes(usedWord)) {
-                    fileCoverage.add(lineIdx);
-                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
+                    console.log('   🔄 Requesting JSON fix...');
+                    response = await anthropic.messages.create({
+                        model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
+                        max_tokens: 1000,
+                        messages: [{ role: "user", content: fixPrompt }],
+                        temperature: 0.1
+                    });
+
+                    responseText = response.content[0].text.trim();
+                    responseText = responseText.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+                    currentTry++;
+                } else {
+                    console.log('   ❌ Max retries reached, skipping chunk');
+                    return null;
                 }
-                // Also mark lines that contain significant parts of examples
-                const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                for (const word of words) {
-                    if (entry.examples.some(example => example.toLowerCase().includes(word))) {
-                        fileCoverage.add(lineIdx);
-                        console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
-                        break;
-                    }
-                }
-            });
+            }
+        }
 
-            // Convert to JSONL format
-            const jsonlEntry = {
-                messages: [
-                    {
-                        role: 'user',
-                        content: `What does '${entry.word}' mean in Yanomami?`
-                    },
-                    {
-                        role: 'assistant',
-                        content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => `- ${ex}`).join('\n')}`
-                    }
-                ]
-            };
-
-            return jsonlEntry;
-        } catch (error) {
-            console.log(`   ⚠️ Error processing response: ${error.message}`);
+        if (!isValidEntry(entry)) {
+            console.log('   ⚠️ Invalid entry format');
             return null;
         }
+
+        // Validar conteúdo
+        if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
+            console.log('   ⚠️ Invalid content');
+            return null;
+        }
+
+        console.log('   ✅ Valid entry generated');
+        
+        // Track used word
+        const usedWord = entry.word.toLowerCase();
+        usedWords.add(usedWord);
+        console.log(`   📝 Added '${usedWord}' to used words list`);
+
+        // Track which lines were used
+        const fileCoverage = linesCoverage.get(currentFile);
+
+        // Mark lines as used if they contain the used word or if their content appears in examples
+        lines.forEach((line, idx) => {
+            const lineIdx = lineStart + idx;
+            if (usedWord && line.toLowerCase().includes(usedWord)) {
+                fileCoverage.add(lineIdx);
+                console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
+            }
+            // Also mark lines that contain significant parts of examples
+            const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            for (const word of words) {
+                if (entry.examples.some(example => example.toLowerCase().includes(word))) {
+                    fileCoverage.add(lineIdx);
+                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
+                    break;
+                }
+            }
+        });
+
+        // Convert to JSONL format
+        const jsonlEntry = {
+            messages: [
+                {
+                    role: 'user',
+                    content: `What does '${entry.word}' mean in Yanomami?`
+                },
+                {
+                    role: 'assistant',
+                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => `- ${ex}`).join('\n')}`
+                }
+            ]
+        };
+
+        return jsonlEntry;
+
     } catch (error) {
         console.log(`   ⚠️ API Error: ${error.message}`);
         if (error.response) {
