@@ -1,12 +1,10 @@
 # Node
 node_modules/
 npm-debug.log
-yarn-debug.log
-yarn-error.log
 
 # Environment
-.dataset-generator.env
-ai-dataset-generator/.env
+.env
+.env.*
 
 # Generated files
 dist/
@@ -24,3 +22,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Ignore yarn error logs
+yarn-error.log
