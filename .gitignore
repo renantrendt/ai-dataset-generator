@@ -6,14 +6,14 @@ yarn-error.log
 
 # Environment
 .dataset-generator.env
-ai-dataset-generator/.dataset-generator.env
+ai-dataset-generator/.env
 
 # Generated files
 dist/
 build/
 *.log
-ai-dataset-generator/
-ai-dataset-generator/*
+ai-dataset-generator/input
+ai-dataset-generator/output
 
 # OS
 .DS_Store
