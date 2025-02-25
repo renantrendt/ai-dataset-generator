@@ -5,8 +5,7 @@ yarn-debug.log
 yarn-error.log
 
 # Environment
-.env
-.env.*
+.dataset-generator.env
 
 # Generated files
 dist/
