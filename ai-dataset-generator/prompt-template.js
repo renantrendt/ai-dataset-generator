@@ -208,8 +208,11 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
 
         console.log('   ✅ Valid entries generated');
         
+        // Processar entradas em duas fases
+        const processedEntries = await processEntries(entries);
+
         // Track used words and update coverage
-        for (const entry of entries) {
+        for (const entry of processedEntries) {
             const usedWord = entry.word.toLowerCase();
             usedWords.add(usedWord);
             console.log(`   📝 Added '${usedWord}' to used words list`);
@@ -240,7 +243,7 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
         }
 
         // Converte cada entrada para formato JSONL
-        const jsonlEntries = entries.map(entry => ({
+        const jsonlEntries = processedEntries.map(entry => ({
             messages: [
                 {
                     role: 'user',
@@ -248,7 +251,7 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
                 },
                 {
                     role: 'assistant',
-                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}.${entry.examples.length > 0 ? `\n\nHere are some examples:\n\n${entry.examples.map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`).join('\n\n')}` : ''}`
+                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is ${entry.grammar === 'Noun' || /^[aeiou]/i.test(entry.grammar) ? 'an' : 'a'} ${entry.grammar}.${entry.examples.length > 0 ? `\n\nHere are some examples:\n\n${entry.examples.map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`).join('\n\n')}` : ''}${entry.related_forms && entry.related_forms.length > 0 ? `\n\nRelated forms: ${entry.related_forms.join(', ')}` : ''}`
                 }
             ]
         }));
@@ -324,4 +327,114 @@ function isValidEntry(entry) {
     }
 
     return true;
+}
+
+// Função para processar entradas em duas fases
+async function processEntries(entries) {
+    // Fase 1: Extração
+    const wordIndex = new Map();
+    for (const entry of entries) {
+        const words = extractWords(entry);
+        for (const word of words) {
+            if (!wordIndex.has(word)) {
+                wordIndex.set(word, {
+                    references: new Set(),
+                    contexts: new Set(),
+                    entryNumbers: new Set()
+                });
+            }
+            // Atualizar índice
+            updateWordIndex(wordIndex.get(word), entry);
+        }
+    }
+
+    // Fase 2: Geração
+    const results = [];
+    for (const [word, metadata] of wordIndex) {
+        const entry = await generateDetailedEntry(word, metadata);
+        if (validateEntry(entry, wordIndex)) {
+            results.push(entry);
+        }
+    }
+
+    return results;
+}
+
+// Função para extrair palavras de uma entrada
+function extractWords(entry) {
+    // Supondo que a entrada é um objeto com a propriedade 'word'
+    return entry.word.split(/\s+/);
+}
+
+// Função para atualizar o índice de palavras
+function updateWordIndex(metadata, entry) {
+    metadata.references.add(entry.word);
+    metadata.contexts.add(entry.translation);
+    metadata.entryNumbers.add(entry.entry_number);
+}
+
+// Função para gerar entrada detalhada
+async function generateDetailedEntry(word, metadata) {
+    // Extrair informações do metadata
+    const translationContext = Array.from(metadata.contexts);
+    const references = Array.from(metadata.references);
+    
+    // Encontrar exemplos relacionados
+    const examples = translationContext
+        .filter(ctx => ctx.includes(word))
+        .map(ctx => {
+            const parts = ctx.split(' - ');
+            return {
+                yanomami: parts[0],
+                translation: parts[1] || ''
+            };
+        })
+        .filter(ex => ex.yanomami && ex.translation);
+
+    // Determinar a categoria gramatical baseado no contexto
+    const grammar = determineGrammarCategory(translationContext);
+
+    return {
+        word: word,
+        translation: translationContext[0], // Primeira tradução encontrada
+        grammar: grammar,
+        related_forms: references.filter(ref => ref !== word),
+        examples: examples
+    };
+}
+
+// Função para determinar a categoria gramatical
+function determineGrammarCategory(contexts) {
+    const context = contexts.join(' ').toLowerCase();
+    if (context.includes('verb') || context.includes('action')) return 'Verb (Intransitive)';
+    if (context.includes('noun') || context.includes('thing')) return 'Noun';
+    if (context.includes('adjective') || context.includes('quality')) return 'Adjective';
+    if (context.includes('adverb') || context.includes('manner')) return 'Adverb';
+    if (context.includes('particle')) return 'Particle';
+    if (context.includes('pronoun')) return 'Pronoun';
+    return 'Noun'; // Categoria padrão
+}
+
+// Função para formatar a resposta do assistente
+function formatAssistantResponse(entry) {
+    let response = `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}.`;
+
+    if (entry.related_forms && entry.related_forms.length > 0) {
+        response += `\n\nRelated forms: ${entry.related_forms.join(', ')}`;
+    }
+
+    if (entry.examples && entry.examples.length > 0) {
+        response += '\n\nHere are some examples:\n\n';
+        response += entry.examples
+            .map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`)
+            .join('\n\n');
+    }
+
+    return response;
+}
+
+// Função para validar a entrada gerada
+function validateEntry(entry, wordIndex) {
+    // Implementar lógica de validação
+    return entry && entry.word && entry.translation;
 }
