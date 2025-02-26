@@ -2,9 +2,11 @@ const fs = require('fs');
 const path = require('path');
 
 // Caminho para o arquivo de entrada
-const inputFilePath = path.join(__dirname, 'output', 'dataset_2025-02-26T03-22-23-567Z.jsonl');
+const inputFilePath = path.join(__dirname, 'output', 'dataset_2025-02-26T11-00-33-047Z.jsonl');
 // Caminho para o arquivo de saída
 const outputFilePath = path.join(__dirname, 'output', 'merged-dataset.jsonl');
+// Caminho para o arquivo de erros
+const errorFilePath = path.join(__dirname, 'output', 'merge-errors.log');
 
 // Função para ler o arquivo JSONL
 function readJsonlFile(filePath) {
@@ -15,6 +17,7 @@ function readJsonlFile(filePath) {
 // Função para mesclar datasets
 function mergeDatasets(entries) {
     const merged = {};
+    const errors = [];
 
     entries.forEach(entry => {
         const word = entry.messages[1].content.match(/'(.+?)'/)[1]; // Extrai a palavra
@@ -32,9 +35,17 @@ function mergeDatasets(entries) {
                 const existingExamplesList = existingExamples[1].trim().split('\n\n');
                 const combinedExamples = newExamplesList.concat(existingExamplesList);
                 existingEntry.messages[1].content = existingEntry.messages[1].content.replace(/Here are some examples:(.*?)(?=\n\n|$)/s, `Here are some examples:\n\n${combinedExamples.join('\n\n')}`);
+            } else if (!newExamples || !existingExamples) {
+                // Registra erro se exemplos estiverem ausentes
+                errors.push(`Error merging word '${word}': missing examples`);
             }
         }
     });
+
+    // Salva os erros em um arquivo
+    if (errors.length > 0) {
+        fs.writeFileSync(errorFilePath, errors.join('\n'), 'utf-8');
+    }
 
     return Object.values(merged);
 }
