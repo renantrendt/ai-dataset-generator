@@ -105,7 +105,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         const templatePath = path.join(path.dirname(inputDir), 'dataset-template.jsonl');
         const template = await fs.readFile(templatePath, 'utf-8');
 
-        const dataset = [];
         let processedFiles = 0;
         let totalChunks = 0;
 
@@ -144,9 +143,17 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
                     const lineStart = i * sentencesPerChunk;
                     const entries = await processChunk(chunk, template, anthropic, lineStart, file);
                     if (entries && entries.length > 0) {
-                        dataset.push(...entries);
-                        totalChunks += entries.length;
-                        console.log(`   ✨ Success! Added ${entries.length} entries. Total valid entries: ${totalChunks}`);
+                        // Write each entry to the JSONL file immediately
+                        for (const entry of entries) {
+                            try {
+                                await fs.appendFile(outputFile, JSON.stringify(entry) + '\n');
+                                totalChunks += 1;
+                                console.log(`   ✨ Success! Added entry for: ${entry.messages[0].content}`);
+                            } catch (error) {
+                                console.log(`   ⚠️ Error writing entry to file: ${error.message}`);
+                            }
+                        }
+                        console.log(`   Total valid entries: ${totalChunks}`);
                     } else {
                         skippedChunks++;
                         console.log(`   ⚠️ Chunk skipped: Invalid or empty response`);
@@ -167,9 +174,14 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             // Generate coverage report for this file
             const usedLines = linesCoverage.get(file);
             const coverage = Math.round((usedLines.size / lines.length) * 100);
-            console.log(`\n   📊 File Coverage:`);
+
+            console.log(`
+               📊 File Coverage:`);
             console.log(`      - ${usedLines.size}/${lines.length} lines used (${coverage}%)`);
-            
+
+            // Add used lines info
+            console.log(`      - Used lines: ${Array.from(usedLines).join(', ')}`);
+
             // Show unused line ranges and collect unused content
             const unusedRanges = [];
             const unusedContent = [];
@@ -204,31 +216,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         console.log('\n💾 Saving dataset...');
         // Create output directory if it doesn't exist
         await fs.mkdir(path.dirname(outputFile), { recursive: true });
-        
-        // Validar e salvar cada entrada
-        const validEntries = dataset.filter(entry => {
-            try {
-                // Verifica se a entrada é válida e completa
-                if (!entry || !entry.messages || entry.messages.length !== 2) return false;
-                const content0 = entry.messages[0].content;
-                const content1 = entry.messages[1].content;
-                if (!content0 || !content1 || content0.includes('undefined') || content1.includes('undefined')) return false;
-                if (content0.length < 10 || content1.length < 10) return false;
-                return true;
-            } catch (e) {
-                return false;
-            }
-        });
-
-        if (validEntries.length < dataset.length) {
-            console.log(`⚠️ Removed ${dataset.length - validEntries.length} invalid entries`);
-        }
-
-        const mergedEntries = mergeRepeatedOutputs(validEntries);
-        console.log(`✨ Merged duplicate queries: reduced from ${validEntries.length} to ${mergedEntries.length} entries`);
-
-        const jsonlContent = mergedEntries.map(entry => JSON.stringify(entry)).join('\n');
-        await fs.writeFile(outputFile, jsonlContent);
 
         return {
             processedFiles,
