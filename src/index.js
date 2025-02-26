@@ -233,7 +233,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
     }
 }
 
-function splitIntoChunks(text, targetChunks = null) {
+function splitIntoChunks(text) {
     // Capture everything in the text
     const entries = text.split('\n').map(line => ({
         content: line.trim(),
@@ -242,26 +242,29 @@ function splitIntoChunks(text, targetChunks = null) {
     const chunks = [];
     let currentChunk = [];
     let currentSize = 0;
-    const MAX_CHUNK_SIZE = 4000; // Safe limit for tokens
+    const MAX_CHUNK_SIZE = 4096; // Safe limit for tokens
 
     for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         
         // Check if the current entry fits in the chunk
         if (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
-            // Log if the chunk is too big
-            console.log(`⚠️ Chunk too large to send, size: ${currentSize + entry.content.length} characters`);
-            // Add the current chunk to the list and start a new chunk
-            chunks.push(currentChunk.map(e => e.content).join('\n'));
-            currentChunk = [];
-            currentSize = 0;
+            // If the chunk is too large, split it into smaller parts
+            while (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
+                const splitPoint = MAX_CHUNK_SIZE - currentSize;
+                const splitEntry = entry.content.slice(0, splitPoint);
+                currentChunk.push({ content: splitEntry });
+                chunks.push(currentChunk.map(e => e.content).join('\n'));
+                currentChunk = [];
+                currentSize = 0;
+                entry.content = entry.content.slice(splitPoint); // Remainder of the entry
+            }
         }
         
         // Add entry to the current chunk
         currentChunk.push(entry);
         currentSize += entry.content.length;
-    
-        
+
         // If it's the last entry, add the final chunk
         if (i === entries.length - 1 && currentChunk.length > 0) {
             chunks.push(currentChunk.map(e => e.content).join('\n'));
