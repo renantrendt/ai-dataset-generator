@@ -1,8 +1,9 @@
 const fs = require('fs');
+const path = require('path');
 
 // Read input file
-const inputFilePath = './input/182696243-Yanomamo-Dictionary-Complete (1).txt';
-const outputFilePath = './output/modified-dictionary.txt';
+const inputFilePath = path.join(__dirname, '..', 'input', 'Yanomamo-Dictionary.txt');
+const outputFilePath = path.join(__dirname, '..', 'input', 'modified-dictionary.txt');
 
 fs.readFile(inputFilePath, 'utf8', (err, data) => {
     if (err) {
@@ -27,7 +28,7 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
         .replace(/leg\./g, 'leguminosa.')
         .replace(/no id\./g, 'no identificado (animal, planta).');
 
-    // Write to output file
+    // Write the modified data to the output file
     fs.writeFile(outputFilePath, modifiedData, (err) => {
         if (err) {
             console.error('Error writing the file:', err);
