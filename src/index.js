@@ -105,7 +105,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         const templatePath = path.join(path.dirname(inputDir), 'dataset-template.jsonl');
         const template = await fs.readFile(templatePath, 'utf-8');
 
-        const dataset = [];
         let processedFiles = 0;
         let totalChunks = 0;
 
@@ -125,8 +124,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             console.log(`   📊 File has ${lines.length} total lines`);
             // Calculate target chunks per file if maxExamples specified
             const targetChunksPerFile = maxExamples ? Math.ceil(maxExamples / files.length) : null;
-            const sentences = content.split(/(?<=[.!?])\s+/).filter(s => s.trim());
-            const sentencesPerChunk = targetChunksPerFile ? Math.max(1, Math.ceil(sentences.length / targetChunksPerFile)) : null;
             const chunks = splitIntoChunks(content, targetChunksPerFile);
             
             // Log chunk info
@@ -134,6 +131,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             
             let processedChunks = 0;
             let skippedChunks = 0;
+            const skippedLines = [];
             for (let i = 0; i < chunks.length; i++) {
                 const chunk = chunks[i];
                 processedChunks++;
@@ -141,42 +139,59 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
                 
                 try {
                     // Calcular lineStart baseado no índice do chunk
-                    const lineStart = i * sentencesPerChunk;
+                    const lineStart = i * config.chunkSize;
                     const entries = await processChunk(chunk, template, anthropic, lineStart, file);
                     if (entries && entries.length > 0) {
-                        dataset.push(...entries);
-                        totalChunks += entries.length;
-                        console.log(`   ✨ Success! Added ${entries.length} entries. Total valid entries: ${totalChunks}`);
+                        // Write each entry to the JSONL file immediately
+                        for (const entry of entries) {
+                            try {
+                                await fs.appendFile(outputFile, JSON.stringify(entry) + '\n');
+                                totalChunks += 1;
+                                console.log(`   ✨ Success! Added entry for: ${entry.messages[0].content}`);
+                            } catch (error) {
+                                console.log(`   ⚠️ Error writing entry to file: ${error.message}`);
+                            }
+                        }
+                        console.log(`   Total valid entries: ${totalChunks}`);
                     } else {
                         skippedChunks++;
+                        skippedLines.push(...Array.from({ length: config.chunkSize }, (_, j) => lineStart + j + 1));
                         console.log(`   ⚠️ Chunk skipped: Invalid or empty response`);
                         console.log(`   📈 Stats: ${skippedChunks} chunks skipped so far`);
                     }
                 } catch (error) {
                     skippedChunks++;
+                    skippedLines.push(...Array.from({ length: config.chunkSize }, (_, j) => lineStart + j + 1));
                     console.log(`   ❌ Error processing chunk: ${error.message}`);
                     console.log(`   📈 Stats: ${skippedChunks} chunks skipped so far`);
                 }
             }
             
             if (skippedChunks > 0) {
-                console.log(`\n   ⚠️ Summary: ${skippedChunks}/${chunks.length} chunks were skipped`);
+                console.log(`
+               ⚠️ Summary: ${skippedChunks}/${chunks.length} chunks were skipped`);
             }
             processedFiles++;
             
             // Generate coverage report for this file
             const usedLines = linesCoverage.get(file);
             const coverage = Math.round((usedLines.size / lines.length) * 100);
-            console.log(`\n   📊 File Coverage:`);
+
+            console.log(`
+               📊 File Coverage:`);
             console.log(`      - ${usedLines.size}/${lines.length} lines used (${coverage}%)`);
-            
+            console.log(`      - Skipped lines: ${skippedLines.join(', ')}`);
+
+            // Add used lines info
+            console.log(`      - Used lines: ${Array.from(usedLines).join(', ')}`);
+
             // Show unused line ranges and collect unused content
             const unusedRanges = [];
             const unusedContent = [];
             let start = null;
             
             for (let i = 0; i < lines.length; i++) {
-                if (!usedLines.has(i)) {
+                if (!usedLines.has(i) && !skippedLines.includes(i + 1)) {
                     if (start === null) start = i;
                     unusedContent.push(lines[i]);
                 } else if (start !== null) {
@@ -204,31 +219,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         console.log('\n💾 Saving dataset...');
         // Create output directory if it doesn't exist
         await fs.mkdir(path.dirname(outputFile), { recursive: true });
-        
-        // Validar e salvar cada entrada
-        const validEntries = dataset.filter(entry => {
-            try {
-                // Verifica se a entrada é válida e completa
-                if (!entry || !entry.messages || entry.messages.length !== 2) return false;
-                const content0 = entry.messages[0].content;
-                const content1 = entry.messages[1].content;
-                if (!content0 || !content1 || content0.includes('undefined') || content1.includes('undefined')) return false;
-                if (content0.length < 10 || content1.length < 10) return false;
-                return true;
-            } catch (e) {
-                return false;
-            }
-        });
-
-        if (validEntries.length < dataset.length) {
-            console.log(`⚠️ Removed ${dataset.length - validEntries.length} invalid entries`);
-        }
-
-        const mergedEntries = mergeRepeatedOutputs(validEntries);
-        console.log(`✨ Merged duplicate queries: reduced from ${validEntries.length} to ${mergedEntries.length} entries`);
-
-        const jsonlContent = mergedEntries.map(entry => JSON.stringify(entry)).join('\n');
-        await fs.writeFile(outputFile, jsonlContent);
 
         return {
             processedFiles,
@@ -243,56 +233,44 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
     }
 }
 
-function splitIntoChunks(text, targetChunks = null) {
-    // Regex para identificar entradas completas do dicionário
-    const entryPattern = /^\d+\.[^\n]+(?:\n(?!\d+\.).*)*$/gm;
-    
-    // Encontrar todas as entradas completas
-    const entries = [];
-    let match;
-    while ((match = entryPattern.exec(text)) !== null) {
-        entries.push({
-            content: match[0],
-            start: match.index,
-            end: match.index + match[0].length
-        });
-    }
+function splitIntoChunks(text) {
+    // Capture everything in the text
+    const entries = text.split('\n').map(line => ({
+        content: line.trim(),
+    })).filter(entry => entry.content.length > 0);
 
-    // Se targetChunks for especificado, calcular quantas entradas por chunk
-    const entriesPerChunk = targetChunks ? Math.ceil(entries.length / targetChunks) : 3;
-    
     const chunks = [];
     let currentChunk = [];
     let currentSize = 0;
-    const MAX_CHUNK_SIZE = 4000; // Limite seguro para tokens
+    const MAX_CHUNK_SIZE = 4096; // Safe limit for tokens
 
     for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         
-        // Verificar se a entrada atual cabe no chunk
-        if (currentChunk.length >= entriesPerChunk || 
-            (currentSize + entry.content.length > MAX_CHUNK_SIZE && currentChunk.length > 0)) {
-            // Adicionar chunk atual à lista e começar novo chunk
-            chunks.push(currentChunk.map(e => e.content).join('\n'));
-            currentChunk = [];
-            currentSize = 0;
+        // Check if the current entry fits in the chunk
+        if (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
+            // If the chunk is too large, split it into smaller parts
+            while (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
+                const splitPoint = MAX_CHUNK_SIZE - currentSize;
+                const splitEntry = entry.content.slice(0, splitPoint);
+                currentChunk.push({ content: splitEntry });
+                chunks.push(currentChunk.map(e => e.content).join('\n'));
+                currentChunk = [];
+                currentSize = 0;
+                entry.content = entry.content.slice(splitPoint); // Remainder of the entry
+            }
         }
-
-        // Adicionar entrada ao chunk atual
+        
+        // Add entry to the current chunk
         currentChunk.push(entry);
         currentSize += entry.content.length;
 
-        // Se é a última entrada, adicionar o chunk final
+        // If it's the last entry, add the final chunk
         if (i === entries.length - 1 && currentChunk.length > 0) {
             chunks.push(currentChunk.map(e => e.content).join('\n'));
         }
-
-        // Se atingimos o número alvo de chunks, parar
-        if (targetChunks && chunks.length >= targetChunks) {
-            break;
-        }
     }
-
+    
     return chunks;
 }
 
