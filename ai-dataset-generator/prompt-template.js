@@ -186,7 +186,7 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
                     console.log('   🔄 Requesting JSON fix...');
                     response = await anthropic.messages.create({
                         model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
-                        max_tokens: 4096,
+                        max_tokens: 10000,
                         messages: [{ role: "user", content: fixPrompt }],
                         temperature: 0.1
                     });

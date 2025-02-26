@@ -124,8 +124,6 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             console.log(`   📊 File has ${lines.length} total lines`);
             // Calculate target chunks per file if maxExamples specified
             const targetChunksPerFile = maxExamples ? Math.ceil(maxExamples / files.length) : null;
-            const sentences = content.split(/(?<=[.!?])\s+/).filter(s => s.trim());
-            const sentencesPerChunk = targetChunksPerFile ? Math.max(1, Math.ceil(sentences.length / targetChunksPerFile)) : null;
             const chunks = splitIntoChunks(content, targetChunksPerFile);
             
             // Log chunk info
@@ -133,6 +131,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             
             let processedChunks = 0;
             let skippedChunks = 0;
+            const skippedLines = [];
             for (let i = 0; i < chunks.length; i++) {
                 const chunk = chunks[i];
                 processedChunks++;
@@ -140,7 +139,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
                 
                 try {
                     // Calcular lineStart baseado no índice do chunk
-                    const lineStart = i * sentencesPerChunk;
+                    const lineStart = i * config.chunkSize;
                     const entries = await processChunk(chunk, template, anthropic, lineStart, file);
                     if (entries && entries.length > 0) {
                         // Write each entry to the JSONL file immediately
@@ -156,18 +155,21 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
                         console.log(`   Total valid entries: ${totalChunks}`);
                     } else {
                         skippedChunks++;
+                        skippedLines.push(...Array.from({ length: config.chunkSize }, (_, j) => lineStart + j + 1));
                         console.log(`   ⚠️ Chunk skipped: Invalid or empty response`);
                         console.log(`   📈 Stats: ${skippedChunks} chunks skipped so far`);
                     }
                 } catch (error) {
                     skippedChunks++;
+                    skippedLines.push(...Array.from({ length: config.chunkSize }, (_, j) => lineStart + j + 1));
                     console.log(`   ❌ Error processing chunk: ${error.message}`);
                     console.log(`   📈 Stats: ${skippedChunks} chunks skipped so far`);
                 }
             }
             
             if (skippedChunks > 0) {
-                console.log(`\n   ⚠️ Summary: ${skippedChunks}/${chunks.length} chunks were skipped`);
+                console.log(`
+               ⚠️ Summary: ${skippedChunks}/${chunks.length} chunks were skipped`);
             }
             processedFiles++;
             
@@ -178,6 +180,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             console.log(`
                📊 File Coverage:`);
             console.log(`      - ${usedLines.size}/${lines.length} lines used (${coverage}%)`);
+            console.log(`      - Skipped lines: ${skippedLines.join(', ')}`);
 
             // Add used lines info
             console.log(`      - Used lines: ${Array.from(usedLines).join(', ')}`);
@@ -188,7 +191,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             let start = null;
             
             for (let i = 0; i < lines.length; i++) {
-                if (!usedLines.has(i)) {
+                if (!usedLines.has(i) && !skippedLines.includes(i + 1)) {
                     if (start === null) start = i;
                     unusedContent.push(lines[i]);
                 } else if (start !== null) {
@@ -231,23 +234,11 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
 }
 
 function splitIntoChunks(text, targetChunks = null) {
-    // Regex to identify complete dictionary entries
-    const entryPattern = /^(\w+)(?:\s+)(.*?)(?=\n\w+|$)/gm;
-    
-    // Find all complete entries
-    const entries = [];
-    let match;
-    while ((match = entryPattern.exec(text)) !== null) {
-        entries.push({
-            content: match[0].trim(),
-            start: match.index,
-            end: match.index + match[0].length
-        });
-    }
+    // Capture everything in the text
+    const entries = text.split('\n').map(line => ({
+        content: line.trim(),
+    })).filter(entry => entry.content.length > 0);
 
-    // If targetChunks is specified, calculate how many entries per chunk
-    const entriesPerChunk = targetChunks ? Math.ceil(entries.length / targetChunks) : 3;
-    
     const chunks = [];
     let currentChunk = [];
     let currentSize = 0;
@@ -257,12 +248,9 @@ function splitIntoChunks(text, targetChunks = null) {
         const entry = entries[i];
         
         // Check if the current entry fits in the chunk
-        if (currentChunk.length >= entriesPerChunk || 
-            (currentSize + entry.content.length > MAX_CHUNK_SIZE && currentChunk.length > 0)) {
+        if (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
             // Log if the chunk is too big
-            if (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
-                console.log(`⚠️ Chunk too large to send, size: ${currentSize + entry.content.length} characters`);
-            }
+            console.log(`⚠️ Chunk too large to send, size: ${currentSize + entry.content.length} characters`);
             // Add the current chunk to the list and start a new chunk
             chunks.push(currentChunk.map(e => e.content).join('\n'));
             currentChunk = [];
@@ -277,11 +265,6 @@ function splitIntoChunks(text, targetChunks = null) {
         // If it's the last entry, add the final chunk
         if (i === entries.length - 1 && currentChunk.length > 0) {
             chunks.push(currentChunk.map(e => e.content).join('\n'));
-        }
-        
-        // If we've reached the target number of chunks, stop
-        if (targetChunks && chunks.length >= targetChunks) {
-            break;
         }
     }
     
