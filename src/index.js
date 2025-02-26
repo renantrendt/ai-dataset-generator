@@ -97,7 +97,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             throw new Error('Prompt template not found. Please run ai-dataset-generator init first.');
         }
         
-        const { processChunk, config: promptConfig } = await import(promptTemplatePath);
+        const { processChunk, config: promptConfig, mergeRepeatedOutputs } = await import(promptTemplatePath);
         // Atualizar config com valores do prompt-template
         config = promptConfig;
 
@@ -224,7 +224,10 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             console.log(`⚠️ Removed ${dataset.length - validEntries.length} invalid entries`);
         }
 
-        const jsonlContent = validEntries.map(entry => JSON.stringify(entry)).join('\n');
+        const mergedEntries = mergeRepeatedOutputs(validEntries);
+        console.log(`✨ Merged duplicate queries: reduced from ${validEntries.length} to ${mergedEntries.length} entries`);
+
+        const jsonlContent = mergedEntries.map(entry => JSON.stringify(entry)).join('\n');
         await fs.writeFile(outputFile, jsonlContent);
 
         return {

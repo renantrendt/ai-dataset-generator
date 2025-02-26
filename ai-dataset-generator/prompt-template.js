@@ -16,7 +16,7 @@ export const config = {
     maxSentences: 2     // Máximo de 4 sentenças por chunk
 };
 
-export async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
+async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
     try {
         // Limita o chunk a 4 linhas
         let lines = chunk.split('\n');
@@ -343,8 +343,71 @@ function formatAssistantResponse(entry) {
     return response;
 }
 
+/**
+ * Merge repeated outputs for the same query into a single entry
+ * @param {Array} dataset - Array of dataset entries to be merged
+ * @returns {Array} - Array with merged entries for duplicate queries
+ */
+function mergeRepeatedOutputs(dataset) {
+    // Group entries by user query
+    const groupedByQuery = {};
+    
+    for (const entry of dataset) {
+        const userQuery = entry.messages[0].content;
+        
+        if (!groupedByQuery[userQuery]) {
+            groupedByQuery[userQuery] = [];
+        }
+        
+        groupedByQuery[userQuery].push(entry);
+    }
+    
+    // Process each group of entries with the same query
+    const mergedDataset = [];
+    
+    for (const query in groupedByQuery) {
+        const entriesForQuery = groupedByQuery[query];
+        
+        // If there's only one entry for this query, add it as is
+        if (entriesForQuery.length === 1) {
+            mergedDataset.push(entriesForQuery[0]);
+            continue;
+        }
+        
+        // Merge multiple entries for the same query
+        const mergedEntry = {
+            messages: [
+                { role: "user", content: query },
+                { role: "assistant", content: "" }
+            ]
+        };
+        
+        // Combine all assistant responses with a clear separator
+        const combinedContent = entriesForQuery.map(entry => 
+            entry.messages.find(msg => msg.role === "assistant").content
+        ).join("\n\n---\nAlternative interpretation:\n\n");
+        
+        // Set the combined content as the assistant's response
+        mergedEntry.messages[1].content = combinedContent;
+        
+        // Add the merged entry to the result
+        mergedDataset.push(mergedEntry);
+    }
+    
+    return mergedDataset;
+}
+
 // Função para validar a entrada gerada
 function validateEntry(entry, wordIndex) {
     // Implementar lógica de validação
     return entry && entry.word && entry.translation;
 }
+
+// Export functions and config
+export {
+    processChunk,
+    isValidEntry,
+    formatAssistantResponse,
+    mergeRepeatedOutputs,
+    validateEntry
+};
