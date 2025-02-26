@@ -19,7 +19,13 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
         .replace(/ha\.\.\.ni/g, 'ha...ni morfema')
         .replace(/discontinuo\./g, 'discontinuo.')
         .replace(/akare–/g, 'akare– raíz nominal o verbal.')
-        .replace(/–rayo–/g, '–rayo– sufijo simple o compuesto, desinencia verbal.');
+        .replace(/–rayo–/g, '–rayo– sufijo simple o compuesto, desinencia verbal.')
+        .replace(/F1/g, 'formas primarias, sin expresión de modalidad.')
+        .replace(/F2/g, 'formas derivadas, modales u otras, caracterizadas por un mismo condicionamiento fonológico.')
+        .replace(/hra/g, 'habla de río arriba.')
+        .replace(/hsh/g, 'habla del sur del Orinoco.')
+        .replace(/leg\./g, 'leguminosa.')
+        .replace(/no id\./g, 'no identificado (animal, planta).');
 
     // Write to output file
     fs.writeFile(outputFilePath, modifiedData, (err) => {
