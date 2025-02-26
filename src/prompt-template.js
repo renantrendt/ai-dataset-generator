@@ -1,81 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 /**
- * Validates if an entry has the correct structure and required fields
- * @param {Object} entry - The entry to validate
- * @returns {boolean} True if valid, false otherwise
- */
-function isValidEntry(entry) {
-    // Check if entry is an object
-    if (!entry || typeof entry !== 'object') {
-        console.log('   ⚠️ Entry is not an object');
-        return false;
-    }
-
-    // Check required fields
-    const requiredFields = ['word', 'translation', 'grammar', 'examples'];
-    for (const field of requiredFields) {
-        if (!entry[field]) {
-            console.log(`   ⚠️ Missing required field: ${field}`);
-            return false;
-        }
-    }
-
-    // Validate word
-    if (typeof entry.word !== 'string' || entry.word.trim().length === 0) {
-        console.log('   ⚠️ Invalid word field');
-        return false;
-    }
-
-    // Validate translation
-    if (typeof entry.translation !== 'string' || entry.translation.trim().length === 0) {
-        console.log('   ⚠️ Invalid translation field');
-        return false;
-    }
-
-    // Validate grammar
-    if (typeof entry.grammar !== 'string' || entry.grammar.trim().length === 0) {
-        console.log('   ⚠️ Invalid grammar field');
-        return false;
-    }
-
-    // Validate examples
-    if (!Array.isArray(entry.examples)) {
-        console.log('   ⚠️ Examples is not an array');
-        return false;
-    }
-
-    if (entry.examples.length === 0) {
-        console.log('   ⚠️ No examples provided');
-        return false;
-    }
-
-    // Validate each example
-    for (const example of entry.examples) {
-        if (typeof example === 'string') {
-            if (example.trim().length === 0) {
-                console.log('   ⚠️ Empty example string');
-                return false;
-            }
-        } else if (typeof example === 'object') {
-            if (!example.yanomami || !example.translation || 
-                typeof example.yanomami !== 'string' || 
-                typeof example.translation !== 'string' || 
-                example.yanomami.trim().length === 0 || 
-                example.translation.trim().length === 0) {
-                console.log('   ⚠️ Invalid example object structure');
-                return false;
-            }
-        } else {
-            console.log('   ⚠️ Invalid example type');
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * Processes a chunk of text using Claude API to generate a structured dataset entry
  * @param {string} chunk - The text chunk to process
  * @param {string} template - The template format to follow
@@ -86,14 +11,20 @@ import { linesCoverage, usedWords } from '../src/index.js';
 
 // Configurações do processamento
 export const config = {
-    chunkSize: 1000,    // Caracteres suficientes para uma entrada completa do dicionário
-    minSentences: 3,    // Mínimo de sentenças para capturar a definição e alguns exemplos
-    maxSentences: 10    // Máximo de sentenças para não pegar entradas adjacentes
+    chunkSize: 50,     // Caracteres suficientes para uma entrada completa do dicionário
+    minSentences: 1,    // Mínimo de uma sentença por chunk
+    maxSentences: 2     // Máximo de 4 sentenças por chunk
 };
 
 export async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
     try {
-        const lines = chunk.split('\n');
+        // Limita o chunk a 4 linhas
+        let lines = chunk.split('\n');
+        if (lines.length > 4) {
+            lines = lines.slice(0, 4);
+            chunk = lines.join('\n');
+        }
+        
         const endLine = lineStart + lines.length - 1;
         const chunkSize = chunk.length;
         const numLines = lines.length;
@@ -112,69 +43,52 @@ export async function processChunk(chunk, template, anthropic, lineStart = 0, cu
         }
         
         // Customize this prompt based on your needs
-        const prompt = `You are a Yanomami language expert. Create a dataset entry following these EXACT instructions:
+        const prompt = `You are a linguistic expert specializing in the Yanomami language. Analyze this dictionary entry and create detailed entries for ALL words that have translations:
 
-Input Dictionary Text:
 ${chunk}
 
-Available Words: ${unusedWords.join(', ')}
+Create a JSON array containing an object for EACH word you find, following this structure:
+[
+    {
+        "word": "yanomami_word",
+        "translation": "english_translation",
+        "grammar": "grammatical_info",
+        "related_forms": ["list", "of", "related", "words"],
+        "examples": [
+            {
+                "yanomami": "example sentence in Yanomami",
+                "translation": "English translation"
+            }
+        ]
+    }
+]
 
 Rules:
-1. Choose ONE main Yanomami word (not Spanish/English)
-2. Extract information ONLY from the dictionary text
-3. Include related forms (e.g., if 'ahemarei', include 'aheamai')
-4. Keep ALL grammatical markers (e.g., 'perf.', 'fact.')
-5. Use examples EXACTLY as they appear in text
+1. Include ALL words that have translations in the chunk
+2. Each word should appear only once in the array
+3. Provide accurate translations and grammar information
+4. Include related forms when present
+5. Add relevant usage examples with translations
 
-Format your response as a VALID JSON object with this EXACT structure:
-{
-  "word": "main_yanomami_word",
-  "related_forms": [
-    "form1",
-    "form2"
-  ],
-  "translation": "exact_translation_from_dictionary",
-  "grammar": "grammatical_info_from_dictionary",
-  "examples": [
-    {
-      "yanomami": "yanomami_example_from_text",
-      "translation": "translation_of_example"
-    },
-    {
-      "yanomami": "another_yanomami_example",
-      "translation": "another_translation"
-    }
-  ]
-}
-
-NOTE: For examples array:
-1. Each example MUST be an object with 'yanomami' and 'translation' fields
-2. Each example MUST be separated by a comma
-3. The last example MUST NOT have a trailing comma
-4. Example: 
-   "examples": [
-     {"yanomami": "text1", "translation": "trans1"},
-     {"yanomami": "text2", "translation": "trans2"}
-   ]
-
-IMPORTANT JSON RULES:
+JSON Format Rules:
 1. Every string MUST be in double quotes
 2. Arrays/objects MUST have commas between items
 3. NO trailing commas after last item
 4. NO comments or extra text
 5. NO line breaks within strings
+6. The outer structure MUST be a JSON array
 
-Respond ONLY with the JSON object.`;
+Respond ONLY with the JSON array, no additional text.`;
 
         console.log('\n   📤 Text sent to AI:');
         console.log('   ' + prompt.split('\n').join('\n   '));
 
-        // Create a promise that rejects in 30 seconds
+        // Create a promise that rejects in 60 seconds
         let timeoutId;
         const timeout = new Promise((_, reject) => {
             timeoutId = setTimeout(() => {
-                reject(new Error('API request timed out after 30 seconds'));
-            }, 30000);
+                reject(new Error('API request timed out after 60 seconds'));
+            }, 60000);
         });
 
         let response;
@@ -182,7 +96,7 @@ Respond ONLY with the JSON object.`;
             // Create the API request promise
             const apiRequest = anthropic.messages.create({
                 model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
-                max_tokens: 1000,  // Suficiente para uma entrada de dicionário com exemplos
+                max_tokens: 4096,  // Máximo permitido para Claude 3 Sonnet
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.1   // Temperatura muito baixa para máxima consistência
             });
@@ -208,12 +122,35 @@ Respond ONLY with the JSON object.`;
         // Tenta processar a resposta com até 3 tentativas
         let maxRetries = 3;
         let currentTry = 1;
-        let entry = null;
+        let entries = null;
 
         while (currentTry <= maxRetries) {
             try {
-                entry = JSON.parse(responseText);
-                break; // Se conseguiu fazer parse, sai do loop
+                const parsedResponse = JSON.parse(responseText);
+                
+                // Verifica se é um array
+                if (!Array.isArray(parsedResponse)) {
+                    console.log('   ⚠️ Response is not an array');
+                    if (typeof parsedResponse === 'object') {
+                        // Se for um objeto único, tenta converter para array
+                        parsedResponse = [parsedResponse];
+                    } else {
+                        currentTry++;
+                        continue;
+                    }
+                }
+                
+                // Valida cada entrada no array
+                const validEntries = parsedResponse.filter(entry => isValidEntry(entry));
+                
+                if (validEntries.length === 0) {
+                    console.log('   ⚠️ No valid entries found');
+                    currentTry++;
+                    continue;
+                }
+                
+                entries = validEntries;
+                break; // Se conseguiu fazer parse e validar, sai do loop
             } catch (error) {
                 console.log(`   ⚠️ Try ${currentTry}/${maxRetries}: JSON Parse Error - ${error.message}`);
                 
@@ -224,17 +161,18 @@ Respond ONLY with the JSON object.`;
 Original response:
 ${responseText}
 
-Please fix the JSON format issues and return ONLY a valid JSON object following these rules:
+Please fix the JSON format issues and return ONLY a valid JSON array following these rules:
 1. Every string MUST be in double quotes
 2. Arrays/objects MUST have commas between items
 3. NO trailing commas after last item
 4. NO comments or extra text
-5. NO line breaks within strings`;
+5. NO line breaks within strings
+6. The outer structure MUST be a JSON array`;
 
                     console.log('   🔄 Requesting JSON fix...');
                     response = await anthropic.messages.create({
                         model: process.env.DATASET_GEN_CLAUDE_MODEL || "claude-3-sonnet-20240229",
-                        max_tokens: 1000,
+                        max_tokens: 4096,
                         messages: [{ role: "user", content: fixPrompt }],
                         temperature: 0.1
                     });
@@ -249,53 +187,46 @@ Please fix the JSON format issues and return ONLY a valid JSON object following 
             }
         }
 
-        // Validar estrutura e conteúdo
-        if (!isValidEntry(entry)) {
-            console.log('   ⚠️ Invalid entry format');
+        if (!entries || entries.length === 0) {
+            console.log('   ⚠️ No valid entries found');
             return null;
         }
 
-        // Validar campos obrigatórios
-        if (!entry.word || !entry.translation || !entry.grammar || !entry.examples) {
-            console.log('   ⚠️ Invalid content - missing required fields');
-            return null;
-        }
-
-        console.log('   ✅ Valid entry generated');
+        console.log('   ✅ Valid entries generated');
         
-        // Track used word
-        const usedWord = entry.word.toLowerCase();
-        usedWords.add(usedWord);
-        console.log(`   📝 Added '${usedWord}' to used words list`);
+        // Track used words and update coverage
+        for (const entry of entries) {
+            const usedWord = entry.word.toLowerCase();
+            usedWords.add(usedWord);
+            console.log(`   📝 Added '${usedWord}' to used words list`);
 
-        // Track which lines were used
-        const fileCoverage = linesCoverage.get(currentFile);
+            // Track which lines were used
+            const fileCoverage = linesCoverage.get(currentFile);
 
-        // Mark lines as used if they contain the used word or if their content appears in examples
-        lines.forEach((line, idx) => {
-            const lineIdx = lineStart + idx;
-            if (usedWord && line.toLowerCase().includes(usedWord)) {
-                fileCoverage.add(lineIdx);
-                console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
-            }
-            // Also mark lines that contain significant parts of examples
-            const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            for (const word of words) {
-                if (entry.examples.some(example => 
-                    typeof example === 'string' ? 
-                        example.toLowerCase().includes(word) :
+            // Mark lines as used if they contain the used word or if their content appears in examples
+            lines.forEach((line, idx) => {
+                const lineIdx = lineStart + idx;
+                if (usedWord && line.toLowerCase().includes(usedWord)) {
+                    fileCoverage.add(lineIdx);
+                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${usedWord}')`);
+                }
+                // Also mark lines that contain significant parts of examples
+                const words = line.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                for (const word of words) {
+                    if (entry.examples.some(example => 
                         example.yanomami.toLowerCase().includes(word) || 
                         example.translation.toLowerCase().includes(word)
-                )) {
-                    fileCoverage.add(lineIdx);
-                    console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
-                    break;
+                    )) {
+                        fileCoverage.add(lineIdx);
+                        console.log(`   📝 Added line ${lineIdx} to coverage (contains word '${word}' from examples)`);
+                        break;
+                    }
                 }
-            }
-        });
+            });
+        }
 
-        // Convert to JSONL format
-        const jsonlEntry = {
+        // Converte cada entrada para formato JSONL
+        const jsonlEntries = entries.map(entry => ({
             messages: [
                 {
                     role: 'user',
@@ -303,18 +234,15 @@ Please fix the JSON format issues and return ONLY a valid JSON object following 
                 },
                 {
                     role: 'assistant',
-                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}. Here are some examples of its usage:\n\n${entry.examples.map(ex => 
-                        typeof ex === 'string' ? 
-                            `- ${ex}` : 
-                            `- ${ex.yanomami} (${ex.translation})`
-                    ).join('\n')}`
+                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}.${entry.examples.length > 0 ? `\n\nHere are some examples:\n\n${entry.examples.map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`).join('\n\n')}` : ''}`
                 }
             ]
-        };
+        }));
 
-        return jsonlEntry;
+        return jsonlEntries;
+
     } catch (error) {
-        console.log(`   ⚠️ Error processing response: ${error.message}`);
+        console.log(`   ⚠️ API Error: ${error.message}`);
         if (error.response) {
             console.log('   📝 Error details:', error.response.data);
         }
@@ -323,54 +251,38 @@ Please fix the JSON format issues and return ONLY a valid JSON object following 
 }
 
 /**
- * Validates the structure of a dataset entry
- * @param {Object} entry - The entry to validate
+ * Validates the structure of a single entry
+ * @param {Object} entry - Entry to validate
  * @returns {boolean} Whether the entry is valid
  */
 function isValidEntry(entry) {
-    // Validar estrutura básica
-    if (!(
+    // Validação básica da estrutura
+    const hasBasicStructure = entry &&
         typeof entry === 'object' &&
-        entry !== null &&
         typeof entry.word === 'string' &&
         typeof entry.translation === 'string' &&
         typeof entry.grammar === 'string' &&
-        Array.isArray(entry.examples)
-    )) {
-        console.log('   ⚠️ Basic structure validation failed');
+        Array.isArray(entry.examples) &&
+        (!entry.related_forms || Array.isArray(entry.related_forms));  // Campo opcional
+
+    if (!hasBasicStructure) {
+        console.log(`   ⚠️ Invalid basic structure for word: ${entry?.word || 'unknown'}`);
         return false;
     }
 
-    // Validar array de exemplos
-    if (!entry.examples.every(example => {
-        if (typeof example === 'string') {
-            // Se for string, converter para objeto
-            entry.examples = entry.examples.map(ex => ({
-                yanomami: ex,
-                translation: ''
-            }));
-            return true;
-        }
-        const valid = (
+    // Se tem exemplos, valida a estrutura dos exemplos
+    if (entry.examples.length > 0) {
+        const hasValidExamples = entry.examples.every(example => 
+            example && 
             typeof example === 'object' &&
-            example !== null &&
             typeof example.yanomami === 'string' &&
             typeof example.translation === 'string'
         );
-        if (!valid) {
-            console.log('   ⚠️ Example validation failed:', example);
-        }
-        return valid;
-    })) {
-        return false;
-    }
 
-    // Validar related_forms se existir
-    if (entry.related_forms !== undefined && 
-        (!Array.isArray(entry.related_forms) || 
-         !entry.related_forms.every(form => typeof form === 'string'))) {
-        console.log('   ⚠️ Related forms validation failed');
-        return false;
+        if (!hasValidExamples) {
+            console.log(`   ⚠️ Invalid examples found for word: ${entry.word}`);
+            return false;
+        }
     }
 
     return true;
