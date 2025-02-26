@@ -7,10 +7,10 @@ const __dirname = path.dirname(__filename);
 
 // Caminho para o arquivo dataset_2025-02-26T11-00-33-047Z.jsonl
 const datasetFilePath = path.join(__dirname, '..', 'output', 'dataset_2025-02-26T11-00-33-047Z.jsonl');
-// Caminho para o novo arquivo com duplicatas removidas
-const uniqueDatasetFilePath = path.join(__dirname, '..', 'output', 'dataset_unique_prompts.jsonl');
+// Caminho para o novo arquivo com linhas duplicadas
+const duplicatesFilePath = path.join(__dirname, '..', 'output', 'dataset_duplicates.jsonl');
 
-// Função para verificar palavras duplicadas no dataset
+// Função para verificar linhas duplicadas no dataset
 function checkDuplicatesInDataset() {
     fs.readFile(datasetFilePath, 'utf8', (err, data) => {
         if (err) {
@@ -21,6 +21,7 @@ function checkDuplicatesInDataset() {
         // Divide o conteúdo em linhas
         const lines = data.split('\n').filter(line => line.trim().length > 0);
         const wordCount = {};
+        const duplicateLines = [];
 
         // Processa cada linha do dataset
         lines.forEach(line => {
@@ -35,34 +36,24 @@ function checkDuplicatesInDataset() {
                             // Remove aspas e conta a palavra
                             const cleanWord = word.replace(/'/g, '');
                             wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
+                            // Se a palavra já foi vista, adiciona a linha ao conjunto de duplicatas
+                            if (wordCount[cleanWord] > 1) {
+                                duplicateLines.push(line);
+                            }
                         });
                     }
                 }
             });
         });
 
-        // Filtra as palavras únicas
-        const uniqueWords = Object.keys(wordCount);
-
-        // Escreve as palavras únicas em um novo arquivo
-        fs.writeFile(uniqueDatasetFilePath, uniqueWords.join('\n'), 'utf8', (err) => {
+        // Escreve as linhas duplicadas em um novo arquivo
+        fs.writeFile(duplicatesFilePath, duplicateLines.join('\n'), 'utf8', (err) => {
             if (err) {
                 console.error('Error writing the file:', err);
                 return;
             }
-            console.log(`Arquivo com palavras únicas do dataset criado em: ${uniqueDatasetFilePath}`);
+            console.log('Duplicate lines saved to:', duplicatesFilePath);
         });
-
-        // Exibe as palavras duplicadas
-        const duplicates = Object.entries(wordCount).filter(([word, count]) => count > 1);
-        if (duplicates.length > 0) {
-            console.log('Palavras duplicadas encontradas no dataset:');
-            duplicates.forEach(([word, count]) => {
-                console.log(`- ${word}: ${count} vezes`);
-            });
-        } else {
-            console.log('Nenhuma palavra duplicada encontrada no dataset.');
-        }
     });
 }
 
