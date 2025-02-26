@@ -244,55 +244,60 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
 }
 
 function splitIntoChunks(text, targetChunks = null) {
-    // Regex para identificar entradas completas do dicionário
-    const entryPattern = /^\d+\.[^\n]+(?:\n(?!\d+\.).*)*$/gm;
+    // Regex to identify complete dictionary entries
+    const entryPattern = /^(\w+)(?:\s+)(.*?)(?=\n\w+|$)/gm;
     
-    // Encontrar todas as entradas completas
+    // Find all complete entries
     const entries = [];
     let match;
     while ((match = entryPattern.exec(text)) !== null) {
         entries.push({
-            content: match[0],
+            content: match[0].trim(),
             start: match.index,
             end: match.index + match[0].length
         });
     }
 
-    // Se targetChunks for especificado, calcular quantas entradas por chunk
+    // If targetChunks is specified, calculate how many entries per chunk
     const entriesPerChunk = targetChunks ? Math.ceil(entries.length / targetChunks) : 3;
     
     const chunks = [];
     let currentChunk = [];
     let currentSize = 0;
-    const MAX_CHUNK_SIZE = 4000; // Limite seguro para tokens
+    const MAX_CHUNK_SIZE = 4000; // Safe limit for tokens
 
     for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         
-        // Verificar se a entrada atual cabe no chunk
+        // Check if the current entry fits in the chunk
         if (currentChunk.length >= entriesPerChunk || 
             (currentSize + entry.content.length > MAX_CHUNK_SIZE && currentChunk.length > 0)) {
-            // Adicionar chunk atual à lista e começar novo chunk
+            // Log if the chunk is too big
+            if (currentSize + entry.content.length > MAX_CHUNK_SIZE) {
+                console.log(`⚠️ Chunk too large to send, size: ${currentSize + entry.content.length} characters`);
+            }
+            // Add the current chunk to the list and start a new chunk
             chunks.push(currentChunk.map(e => e.content).join('\n'));
             currentChunk = [];
             currentSize = 0;
         }
-
-        // Adicionar entrada ao chunk atual
+        
+        // Add entry to the current chunk
         currentChunk.push(entry);
         currentSize += entry.content.length;
-
-        // Se é a última entrada, adicionar o chunk final
+    
+        
+        // If it's the last entry, add the final chunk
         if (i === entries.length - 1 && currentChunk.length > 0) {
             chunks.push(currentChunk.map(e => e.content).join('\n'));
         }
-
-        // Se atingimos o número alvo de chunks, parar
+        
+        // If we've reached the target number of chunks, stop
         if (targetChunks && chunks.length >= targetChunks) {
             break;
         }
     }
-
+    
     return chunks;
 }
 
