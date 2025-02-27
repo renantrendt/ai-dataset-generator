@@ -10,8 +10,6 @@ npm-debug.log
 dist/
 build/
 *.log
-ai-dataset-generator/input
-ai-dataset-generator/output
 
 # OS
 .DS_Store
