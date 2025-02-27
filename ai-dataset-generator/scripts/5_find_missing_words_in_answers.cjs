@@ -2,11 +2,11 @@ const fs = require('fs');
 const path = require('path');
 
 // Caminho para o arquivo com palavras únicas
-const uniqueWordsFilePath = path.join(__dirname, '..', 'output', 'yanomami-words-unique.txt');
+const uniqueWordsFilePath = path.join(__dirname, '..', 'output', '1_count_words.txt');
 // Caminho para o arquivo com respostas mescladas
-const mergedAnswersFilePath = path.join(__dirname, '..', 'output', 'merged_answers-from-original.jsonl');
+const mergedAnswersFilePath = path.join(__dirname, '..', 'output', '4_cleaned_dataset_merging_duplicated_prompts.jsonl');
 // Caminho para o novo arquivo com palavras ausentes
-const missingWordsFilePath = path.join(__dirname, '..', 'output', 'missing_words_in_answers.jsonl');
+const missingWordsFilePath = path.join(__dirname, '..', 'output', '5_14k_words_to_be_translated.jsonl');
 
 // Função para encontrar palavras ausentes
 function findMissingWordsInAnswers() {
