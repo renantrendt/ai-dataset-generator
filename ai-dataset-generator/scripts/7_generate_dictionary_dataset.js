@@ -35,11 +35,11 @@ function loadEnvConfig() {
 loadEnvConfig();
 
 // Lê o arquivo do dicionário
-const dictionaryPath = '/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/input/modified-dictionary.txt';
+const dictionaryPath = '/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/input/modified_dictionary.txt';
 const content = fs.readFileSync(dictionaryPath, 'utf8');
 
 // Lê a lista de palavras Yanomami validadas
-const yanomamWordsPath = '/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/output/yanomami-words.txt';
+const yanomamWordsPath = '/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/output/1_count_words';
 let yanomamWords = new Set();
 
 if (fs.existsSync(yanomamWordsPath)) {

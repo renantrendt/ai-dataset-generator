@@ -5,9 +5,9 @@ const fs = require('fs');
 const path = require('path');
 
 // Define file paths
-const dictionaryFilePath = path.join(__dirname, '..', 'input', 'modified-dictionary.txt');
-const missingWordsFilePath = path.join(__dirname, '..', 'output', 'missing_words_in_answers.jsonl');
-const outputFilePath = path.join(__dirname, '..', 'output', 'translations_output.txt');
+const dictionaryFilePath = path.join(__dirname, '..', 'input', 'modified_dictionary.txt');
+const missingWordsFilePath = path.join(__dirname, '..', 'output', '5_14k_words_to_be_translated.jsonl');
+const outputFilePath = path.join(__dirname, '..', 'output', '6_14k_words_to_be_translated.txt');
 
 // Create a write stream for the output file
 const outputStream = fs.createWriteStream(outputFilePath, { flags: 'a' });

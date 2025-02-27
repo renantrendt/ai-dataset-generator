@@ -1,0 +1,24 @@
+Gemma: Kkenealy@google.com – be advisor; publish paper; reffer to Stanford...
+
+Missing parts:
+1. - Gerar novo dataset de perguntas do tipo: como eu digo XYZ em yanomami
+
+- Fine tunning (escolher o modelo de linguagem, se precisa ser mobile/offline/espanhol)
+- RLHF?
+- Como coletar feedbacks de users
+
+
+- FUP with Gemma speaker and capture the part of the video to share with David
+
+
+Pre training
+Data selection, filtering, preparing, ablation – distilation and perplexity
+
+Post training
+Supervised fine tuning
+RLHF (bond and warm)
+Model merging (to bring other models strenghts)
+
+Informar que ele é especializado nesse assunto e pode cometer erro em outros e que é baseado num modelo antigo e pequeno pra permitir rodar offline
+
+Usar o windsurf é igual usar a caneta de respostas em math?
