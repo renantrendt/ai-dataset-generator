@@ -1,8 +1,8 @@
 Gemma: Kkenealy@google.com – be advisor; publish paper; reffer to Stanford...
 
 Missing parts:
-1. - Gerar novo dataset de perguntas do tipo: como eu digo XYZ em yanomami
-
+- Gerar prompts das palavras faltantes
+- Gerar novo dataset de perguntas do tipo: como eu digo XYZ em yanomami
 - Fine tunning (escolher o modelo de linguagem, se precisa ser mobile/offline/espanhol)
 - RLHF?
 - Como coletar feedbacks de users
