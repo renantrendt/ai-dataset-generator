@@ -1,0 +1,245 @@
+
+
+=== DEBUG FOR WORD: karohi ===
+[{
+  "word": "karohi",
+  "translation": "a place name (possibly a village or region)",
+  "grammar": "Noun",
+  "related_forms": [],
+  "examples": [
+    {
+      "yanomami": "hei karohi theri pë riha e ta nakarë, wa aka ma rë hayuowei",
+      "translation": "reclámales eso a los de Karohi, ya que sabes expresarte tan bien"
+    },
+    {
+      "yanomami": ""kamiyë kë ya praokirio ë!", karohi theri a kuu",
+      "translation": "\"¡Yo me voy a emboscar río abajo!\", dijo alguien de Karohi"
+    }
+  ]
+}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: thaataramahe ===
+[{"word": "thaataramahe", "translation": "they declared one after another", "grammar": "Verb (Transitive)", "related_forms": [], "examples": [{"yanomami": ""hei a ma rë kui, pei kë siki", a nowã thaataramahe", "translation": "\"you can see that it's here, the skin\", they declared one after another"}]}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: hãwetãi ===
+[{
+  "word": "hãwetãi",
+  "translation": "to shake a bamboo arrowhead laterally to remove it from the arrow shaft; to kill a man",
+  "grammar": "Verb (Transitive)",
+  "related_forms": ["hãwethã–", "hãweke–", "raeke–", "ripuku–"],
+  "examples": [
+    {
+      "yanomami": "ipa wa ki rafaka hãwetãi, wa ki noﬁ mohõtumai ta kurahewë?",
+      "translation": "Have you killed one of my male relatives, have you made him disappear? (lit.: Have you removed the bamboo arrowhead from one of my arrows?)"
+    },
+    {
+      "yanomami": ""rafaka rë pë hãwetekema fa tharei", wamaki yimika kuu totihiopë",
+      "translation": "(One day) you will hear it said that we have killed some of our enemies (lit.: \"They have killed enemies\" is what you will hear said)."
+    }
+  ]
+}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: hãwethã– ===
+[
+  {
+    "word": "hãwethã–",
+    "translation": "to shake or remove the bamboo point from an arrow shaft",
+    "grammar": "Verb (Transitive)",
+    "related_forms": [
+      "hãweteãi",
+      "hãwetãi",
+      "hãwetãr e i",
+      "hãweke–",
+      "raeke–",
+      "ripuku–"
+    ],
+    "examples": [
+      {
+        "yanomami": "frahaka hãwete –",
+        "translation": "to kill a male person"
+      },
+      {
+        "yanomami": "ipa wa ki rafaka hãwetãi, wa ki noﬁ mohõtumai ta kurahewë?",
+        "translation": "have you killed one of my relatives, have you made him disappear? (lit.: have you removed the bamboo point from one of my arrows?)"
+      },
+      {
+        "yanomami": ""rafaka rë pë hãwetekema fa tharei", wamaki yimika kuu totihiopë",
+        "translation": "(one day) you will hear it said that we have killed some of our enemies (lit.: "they have killed enemies" is what you will hear said)"
+      }
+    ]
+  }
+]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: paheãrõhë ===
+[{"word": "paheãrõhë", "translation": "recipiente que contiene semillas", "grammar": "Noun", "related_forms": [], "examples": [{"yanomami": ""kashuhuriyë, wetini pë rii yotehea horaprarema makei kuhe?", kuu kãi hayua kõkeherouwei", "translation": "\"¿quién ha puesto de través el recipiente que contiene mis semillas (kashuhuri)?\", dijo ella al pasar"}]}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: kakatai ===
+[{"word": "kakatai", "translation": "to separate the toes with the hand", "grammar": "Verb (Intransitive)", "related_forms": ["kakamawë", "kakaai", "kakai", "kakaprou", "kakarayou", "kakamou", "kakaakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei", "kakakei",
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: kutaai ===
+[
+  {
+    "word": "kutaai",
+    "translation": "to say repeatedly, to repeat",
+    "grammar": "Verb (Transitive)",
+    "related_forms": [
+      "kuatarou",
+      "kumou",
+      "kuoprou",
+      "kupraai",
+      "kuprarou",
+      "kurayou",
+      "kutou"
+    ],
+    "examples": [
+      {
+        "yanomami": ""pë miõtihë!", ya kutaai he haruma",
+        "translation": "\"Don't sleep!\", I kept repeating during the night"
+      }
+    ]
+  }
+]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: wãrirei ===
+[
+  {
+    "word": "wãrirei",
+    "translation": "to feel resentment towards someone, to protest, to react to an unpleasant situation, to defend oneself during an altercation, to ask a question, to request information",
+    "grammar": "Verb (Transitive)",
+    "related_forms": [
+      "nohi wãripou",
+      "nohi wãrirei",
+      "wãripraai",
+      "wãritaai"
+    ],
+    "examples": [
+      {
+        "yanomami": "para kë u ha wamare nohi wãrirema",
+        "translation": "we lived by the river, it was then that they began to detest us"
+      },
+      {
+        "yanomami": "kõmi thë pëni yamareki nohi wãripoma",
+        "translation": "all the others hated us"
+      },
+      {
+        "yanomami": "ya pë nohi ha wãriponi rasha ya pë harinomi",
+        "translation": "since I detest them, I did not cook pijiguaos for them"
+      },
+      {
+        "yanomami": ""weti pei wa thë pë ta thawë?", hopëriwë iha e thë wãrima",
+        "translation": ""what can this be?", he asked Puerco espín"
+      },
+      {
+        "yanomami": "ai pëni tate pë ha tararini, pë wãrima, "weti pei kë thë ki rii?"",
+        "translation": "the others observed the ripe cambures and asked "what is that?""
+      }
+    ]
+  }
+]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: nokarema ===
+[{
+  "word": "nokarema",
+  "translation": "to react instinctively and almost instantly to an action or situation, to occur immediately after something, to respond ipso facto",
+  "grammar": "Verb (Intransitive)",
+  "related_forms": ["nokakei", "nokao", "nokamapou", "nokaprou", "nokatou", "nokarayou", "nokarei"],
+  "examples": [
+    {"yanomami": ""wamaki ã wã hirimou wãri!", e kua nokarema", "translation": ""We are tired of listening to them!", he said immediately"},
+    {"yanomami": "yai thëni pariki pakëkëprai nokarayoma (mit.)", "translation": "supernatural malefic beings immediately opened his chest"},
+    {"yanomami": "siparariwë kë pëni hoashiri kë pë mo wari wëtii nokamou ha kuparuni (mit.)", "translation": "the piranhas immediately cut off the penises of the capuchin monkeys as they were mating"},
+    {"yanomami": "ya pë niyaprai nokarayoma, pë rããmorãy õ m a", "translation": "I responded immediately to their shots, they were heard groaning"},
+    {"yanomami": "hãshimo ya ha hõrãmirëni, a wã nokaprariyoma", "translation": "I imitated the song of the chachalaca, it responded immediately"}
+  ]
+}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: thareiwei ===
+[{
+  "word": "thareiwei",
+  "translation": "declared",
+  "grammar": "Verb (Transitive)",
+  "related_forms": [],
+  "examples": [{"yanomami": ""yõno kë wahë moku këai henaopë", a nowã rë thareiwei", "translation": ""tomorrow morning you will go to harvest corn", he declared"}]
+}]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: –parutu– ===
+Unfortunately, without any additional context or dictionary entries, it is impossible to accurately translate the Yanomami word '–parutu–'. The provided line [Line 11354] –parutu– does not give enough information to determine its meaning or grammatical category. Therefore, I cannot provide a meaningful translation in the requested JSON format.
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: –taa– ===
+[
+  {
+    "word": "–taa–",
+    "translation": "to repeat an act, to do the same thing several times in a row",
+    "grammar": "Suffix",
+    "related_forms": [
+      "tarei",
+      "tareiwehei",
+      "tate",
+      "taamake",
+      "taamaki", 
+      "taamare",
+      "taamari"
+    ],
+    "examples": [
+      {
+        "yanomami": "pë miõtihë, ya kumotaai he haruma",
+        "translation": ""don't sleep", he kept repeating to them"
+      },
+      {
+        "yanomami": "tate ya uku yakoretaamama",
+        "translation": "I made (someone) stir the cambur compote several times"
+      }
+    ]
+  }
+]
+=== END DEBUG ===
+
+
+
+=== DEBUG FOR WORD: apawëni ===
+Aquí está la traducción en formato JSON:
+
+[{
+  "word": "apawëni",
+  "translation": "my older brother",
+  "grammar": "Noun",
+  "related_forms": [],
+  "examples": [{
+    "yanomami": "apawëni ware a shimama",
+    "translation": "my older brother sent me"
+  }]
+}]
+=== END DEBUG ===
+

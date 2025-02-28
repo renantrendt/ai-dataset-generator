@@ -13,7 +13,7 @@ const FOLDER_STRUCTURE = {
     'output': 'Generated datasets will be saved here',
 };
 
-const ENV_FILENAME = '.dataset-generator.env';
+const ENV_FILENAME = '.env.generator';
 
 async function setup() {
     try {
@@ -44,11 +44,11 @@ async function setup() {
         
         try {
             await fs.access(envPath);
-            console.log('\n🔑 Found existing .env file, skipping creation');
+            console.log(`\n🔑 Found existing ${ENV_FILENAME} file, skipping creation`);
         } catch {
             const envContent = await fs.readFile(envGeneratorPath, 'utf-8');
             await fs.writeFile(envPath, envContent);
-            console.log('\n🔑 Created .env file with example API keys');
+            console.log(`\n🔑 Created ${ENV_FILENAME} file with example API keys`);
         }
 
         console.log(`\n✨ Created AI Dataset Generator workspace at: ${baseDir}`);
@@ -60,7 +60,7 @@ async function setup() {
         console.log(`   └── ${ENV_FILENAME}    (Configure your API keys here)`);
         
         console.log('\n💡 Next steps:');
-        console.log('   1. Edit .env file and add your API keys');
+        console.log(`   1. Edit ${ENV_FILENAME} file and add your API keys`);
         console.log('   2. Place your text files in the input directory');
         console.log('   3. Run: npx ai-dataset-generator');
     } catch (error) {

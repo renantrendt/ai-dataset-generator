@@ -24,11 +24,46 @@ The tool will create a workspace in your home directory at `~/ai-dataset-generat
 ├── input/                 (Place your text files here)
 ├── output/                (Generated datasets will be saved here)
 ├── dataset-template.jsonl   (Customizable example format)
-└── .dataset-generator.env  (Your API keys configuration)
+└── .env.generator          (Your API keys configuration)
 ```
 
+### Accessing the ai-dataset-generator Folder
+In the GitHub repository, you can access the `ai-dataset-generator` folder, which contains the real use case files and scripts used to prepare the data. You can find the necessary commands to run them and understand how to utilize the dataset generator effectively.
+
+### Customizing the Source Code
+
+If you need to customize the behavior of the AI Dataset Generator, you can modify the source code files in the `src` directory:
+
+- `index.js`: Contains the core functionality for processing text files and generating datasets
+- `cli.js`: Handles command-line interface and arguments
+- `init.js`: Initializes the workspace
+- `setup.js`: Sets up the directory structure and environment
+- `prompt-template.js`: Contains the templates used for generating prompts
+
+To customize the source code:
+
+1. Fork the repository or install the package locally
+2. Make your changes to the files in the `src` directory
+3. Test your changes with `npm run generate` or other commands
+4. If you're developing a new feature, consider contributing back to the project via a pull request
+5. Star the project on github
+6. Contact me at https://www.renanserrano.com.br
+
+### Running the Scripts
+
+The `ai-dataset-generator/scripts` directory contains various scripts used for processing and translating Yanomami dictionary entries. To run the scripts, follow these steps:
+
+1. **Run a Specific Script**: Navigate to the Scripts Directory, use Node.js to run the desired script. For example, to run the `7_translate_missing_words_with_claude.js` script, use the following command:
+   ```bash
+   node 7_translate_missing_words_with_claude.js
+   ```
+
+2. **Check for Required Files**: Ensure that the necessary input files are present in the appropriate directories as specified in the script comments.
+
+3. **Monitor Output**: The scripts will generate output files in the `output` directory. Check these files for results and any generated logs.
+
 ### 2. Configure API Keys
-Edit the `.dataset-generator.env` file in your workspace and add your API keys:
+Edit the `.env.generator` file in your workspace and add your API keys:
 ```env
 DATASET_GEN_ANTHROPIC_KEY=your_anthropic_key_here
 # or
@@ -100,7 +135,7 @@ Choosing the right number of examples is important:
 
 ## API Configuration
 
-The tool supports both Claude and OpenAI APIs. After installation, you'll find a `.dataset-generator.env` file in your workspace. This custom environment file won't conflict with your existing `.env` files.
+The tool supports both Claude and OpenAI APIs. After installation, you'll find a `.env.generator` file in your workspace. This custom environment file won't conflict with your existing `.env` files.
 
 ```env
 # AI Dataset Generator Configuration
@@ -152,59 +187,28 @@ Here are some common formats you can use:
 Check `dataset-template.jsonl` in your workspace for more examples and formats.
 
 ### Security Note
-- The `.dataset-generator.env` file is automatically added to `.gitignore` to prevent committing your API keys
+- The `.env.generator` file is automatically added to `.gitignore` to prevent committing your API keys
 - Always keep your API keys private and never commit them to version control
 
-## Customizing the Prompt Template
+## Customizing the AI Prompt
 
-The tool provides a customizable prompt template that controls how the AI processes your input text. When you initialize a workspace, a `prompt-template.js` file is created in your home directory at `~/ai-dataset-generator/prompt-template.js`.
+The tool provides a customizable prompt template that controls how the AI processes your input text. The template is located in the package's source directory at `src/prompt-template.js`.
 
-### Default Location
+To customize the prompt template:
+
+1. Access the source code as described in the "Customizing the Source Code" section
+2. Modify the `src/prompt-template.js` file according to your needs
+3. The changes will be applied when you run the tool
+
+### Structure of the Workspace
+
 ```
 ~/ai-dataset-generator/
-└── prompt-template.js    (Customizable AI prompt template)
+├── input/                 (Place your text files here)
+├── output/                (Generated datasets will be saved here)
+├── dataset-template.jsonl   (Customizable example format)
+└── .env.generator          (Your API keys configuration)
 ```
-
-### Customization
-
-The prompt template file contains two main functions:
-
-1. `processChunk(chunk, template, anthropic)`: Controls how each text chunk is processed
-2. `isValidEntry(entry)`: Validates the generated entries
-
-Example customization:
-
-```javascript
-export async function processChunk(chunk, template, anthropic) {
-    // Customize the prompt for your specific use case
-    const prompt = `Given this text:
-
-${chunk}
-
-Create a Q&A pair following this template:
-${template}
-
-Make sure to include:
-1. Key concepts and definitions
-2. Example usage or applications
-3. Related topics or connections
-
-Respond only with the JSONL formatted entry.`;
-
-    // Rest of the function...
-}
-```
-
-### Use Cases
-
-You can customize the prompt template for various purposes:
-
-- **Language Learning**: Extract vocabulary, grammar, and usage examples
-- **Technical Documentation**: Create Q&A pairs from technical manuals
-- **Knowledge Base**: Convert articles into structured QA format
-- **Training Data**: Generate specific types of training examples
-
-The prompt template will be used for all future dataset generation tasks unless modified.
 
 ## License
 

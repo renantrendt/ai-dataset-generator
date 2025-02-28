@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-const envPath = path.join(__dirname, '..', '.env');
+const envPath = path.join(__dirname, '..', '.env.generator');
 dotenv.config({ path: envPath });
 console.log(`Loading environment variables from: ${envPath}`);
 
@@ -20,7 +20,7 @@ console.log('DATASET_GEN_ANTHROPIC_KEY:', process.env.DATASET_GEN_ANTHROPIC_KEY 
 console.log('DATASET_GEN_CLAUDE_MODEL:', process.env.DATASET_GEN_CLAUDE_MODEL);
 
 // Define file paths
-const missingWordsFilePath = path.join(__dirname, '..', 'output', '5_14k_words_to_be_translated.jsonl');
+const missingWordsFilePath = path.join(__dirname, '..', 'output', '6_words_missing_from_translations.jsonl');
 const cleanedDatasetFilePath = path.join(__dirname, '..', 'output', '4_cleaned_dataset_merging_duplicated_prompts.jsonl');
 const dictionaryFilePath = path.join(__dirname, '..', 'input', 'modified_dictionary.txt');
 const skippedWordsFilePath = path.join(__dirname, '..', 'output', '7_skipped_words.jsonl');

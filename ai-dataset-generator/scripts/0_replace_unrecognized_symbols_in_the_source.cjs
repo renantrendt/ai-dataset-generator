@@ -3,7 +3,7 @@ const path = require('path');
 
 // Read input file
 const inputFilePath = path.join(__dirname, '..', 'input', 'Yanomamo-Dictionary.txt');
-const outputFilePath = path.join(__dirname, '..', 'input', 'modified-dictionary.txt');
+const outputFilePath = path.join(__dirname, '..', 'input', 'modified_dictionary.txt');
 
 fs.readFile(inputFilePath, 'utf8', (err, data) => {
     if (err) {

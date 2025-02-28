@@ -16,13 +16,13 @@ let config = {
     maxSentences: 10
 };
 
-// Load environment variables from custom .env file
+// Load environment variables from custom .env.generator file
 function loadEnvConfig(inputDir) {
     // Try current directory first
-    const currentDirEnv = path.join(process.cwd(), '.env');
-    const inputDirEnv = path.join(path.dirname(inputDir), '.env');
+    const currentDirEnv = path.join(process.cwd(), '.env.generator');
+    const inputDirEnv = path.join(path.dirname(inputDir), '.env.generator');
     const homeDir = process.env.HOME || process.env.USERPROFILE;
-    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.env');
+    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.env.generator');
 
     // Try loading from different locations in order of preference
     const envPaths = [currentDirEnv, inputDirEnv, homeDirEnv];
@@ -43,7 +43,7 @@ function loadEnvConfig(inputDir) {
 function validateApiConfig() {
     const errors = [];
     if (!process.env.DATASET_GEN_ANTHROPIC_KEY && !process.env.DATASET_GEN_OPENAI_KEY) {
-        errors.push('❌ No API keys found. Please set either DATASET_GEN_ANTHROPIC_KEY or DATASET_GEN_OPENAI_KEY in .env');
+        errors.push('❌ No API keys found. Please set either DATASET_GEN_ANTHROPIC_KEY or DATASET_GEN_OPENAI_KEY in .env.generator');
     }
     if (process.env.DATASET_GEN_ANTHROPIC_KEY && !process.env.DATASET_GEN_ANTHROPIC_KEY.startsWith('sk-ant-')) {
         errors.push('❌ Invalid Claude API key format. Should start with "sk-ant-"');
@@ -66,7 +66,7 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
         if (configErrors.length > 0) {
             console.error('\n⚠️ Configuration Issues:');
             configErrors.forEach(error => console.error(error));
-            console.log('\n💡 Tip: Check your .env file in the workspace directory');
+            console.log('\n💡 Tip: Check your .env.generator file in the workspace directory');
             throw new Error('Invalid configuration');
         }
 
@@ -90,13 +90,10 @@ export async function processFiles(inputDir, outputFile, maxExamples = null) {
             apiKey: process.env.DATASET_GEN_ANTHROPIC_KEY
         });
 
-        // Import the processChunk function from workspace
-        const promptTemplatePath = path.join(path.dirname(inputDir), 'prompt-template.js');
+        // Import the processChunk function from the package's src directory
+        const promptTemplatePath = path.join(__dirname, 'prompt-template.js');
         
-        if (!existsSync(promptTemplatePath)) {
-            throw new Error('Prompt template not found. Please run ai-dataset-generator init first.');
-        }
-        
+        // No need to check if the file exists since it's part of the package
         const { processChunk, config: promptConfig, mergeRepeatedOutputs } = await import(promptTemplatePath);
         // Atualizar config com valores do prompt-template
         config = promptConfig;

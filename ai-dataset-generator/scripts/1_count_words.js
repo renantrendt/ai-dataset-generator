@@ -10,10 +10,10 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 function loadEnvConfig() {
     // Try current directory first
-    const currentDirEnv = path.join(process.cwd(), '.env');
-    const aiGenDirEnv = path.join(process.cwd(), 'ai-dataset-generator', '.env');
+    const currentDirEnv = path.join(process.cwd(), '.env.generator');
+    const aiGenDirEnv = path.join(process.cwd(), 'ai-dataset-generator', '.env.generator');
     const homeDir = process.env.HOME || process.env.USERPROFILE;
-    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.env');
+    const homeDirEnv = path.join(homeDir, 'ai-dataset-generator', '.env.generator');
 
     // Try loading from different locations in order of preference
     const envPaths = [currentDirEnv, aiGenDirEnv, homeDirEnv];

@@ -7,7 +7,7 @@ import Anthropic from '@anthropic-ai/sdk';
  * @param {Anthropic} anthropic - The Anthropic client instance
  * @returns {Promise<Object|null>} The processed entry or null if invalid
  */
-import { linesCoverage, usedWords } from '../src/index.js';
+import { linesCoverage, usedWords } from './index.js';
 
 // Configurações do processamento
 export const config = {
@@ -16,7 +16,7 @@ export const config = {
     maxSentences: 2     // Máximo de 4 sentenças por chunk
 };
 
-export async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
+async function processChunk(chunk, template, anthropic, lineStart = 0, currentFile) {
     try {
         // Limita o chunk a 4 linhas
         let lines = chunk.split('\n');
@@ -64,11 +64,25 @@ Create a JSON array containing an object for EACH word you find, following this 
 ]
 
 Rules:
-1. Include ALL words that have translations in the chunk
-2. Each word should appear only once in the array
-3. Provide accurate translations and grammar information
-4. Include related forms when present
-5. Add relevant usage examples with translations
+1. Include ALL words that have clear translations in the chunk
+2. Each word MUST appear only once in the array
+3. Grammar information MUST use one of these standard categories:
+   - Noun
+   - Verb (Transitive)
+   - Verb (Intransitive)
+   - Adjective
+   - Adverb
+   - Pronoun
+   - Particle
+   - Prefix
+   - Suffix
+   - Interjection
+4. Translation MUST be complete and clear
+5. Include 2-3 examples when available (more only if very distinct usages)
+6. Skip any word if:
+   - No clear translation is found
+   - Grammar category is ambiguous
+   - The word appears to be a variant of another entry
 
 JSON Format Rules:
 1. Every string MUST be in double quotes
@@ -194,6 +208,19 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
 
         console.log('   ✅ Valid entries generated');
         
+        const jsonlEntries = entries.map(entry => ({
+            messages: [
+                {
+                    role: 'user',
+                    content: `What does '${entry.word}' mean in Yanomami?`
+                },
+                {
+                    role: 'assistant',
+                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is ${entry.grammar === 'Noun' || /^[aeiou]/i.test(entry.grammar) ? 'an' : 'a'} ${entry.grammar}.${entry.examples.length > 0 ? `\n\nHere are some examples:\n\n${entry.examples.map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`).join('\n\n')}` : ''}${entry.related_forms && entry.related_forms.length > 0 ? `\n\nRelated forms: ${entry.related_forms.join(', ')}` : ''}`
+                }
+            ]
+        }));
+
         // Track used words and update coverage
         for (const entry of entries) {
             const usedWord = entry.word.toLowerCase();
@@ -225,20 +252,6 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
             });
         }
 
-        // Converte cada entrada para formato JSONL
-        const jsonlEntries = entries.map(entry => ({
-            messages: [
-                {
-                    role: 'user',
-                    content: `What does '${entry.word}' mean in Yanomami?`
-                },
-                {
-                    role: 'assistant',
-                    content: `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}.${entry.examples.length > 0 ? `\n\nHere are some examples:\n\n${entry.examples.map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`).join('\n\n')}` : ''}`
-                }
-            ]
-        }));
-
         return jsonlEntries;
 
     } catch (error) {
@@ -256,6 +269,12 @@ Please fix the JSON format issues and return ONLY a valid JSON array following t
  * @returns {boolean} Whether the entry is valid
  */
 function isValidEntry(entry) {
+    // Lista de categorias gramaticais válidas
+    const validGrammarCategories = [
+        'Noun', 'Verb (Transitive)', 'Verb (Intransitive)', 'Adjective',
+        'Adverb', 'Pronoun', 'Particle', 'Prefix', 'Suffix', 'Interjection'
+    ];
+
     // Validação básica da estrutura
     const hasBasicStructure = entry &&
         typeof entry === 'object' &&
@@ -270,13 +289,31 @@ function isValidEntry(entry) {
         return false;
     }
 
-    // Se tem exemplos, valida a estrutura dos exemplos
+    // Validação do conteúdo
+    if (entry.word.trim().length === 0) {
+        console.log(`   ⚠️ Empty word found`);
+        return false;
+    }
+
+    if (entry.translation.trim().length === 0) {
+        console.log(`   ⚠️ Empty translation for word: ${entry.word}`);
+        return false;
+    }
+
+    if (!validGrammarCategories.includes(entry.grammar)) {
+        console.log(`   ⚠️ Invalid grammar category '${entry.grammar}' for word: ${entry.word}`);
+        return false;
+    }
+
+    // Se tem exemplos, valida a estrutura e conteúdo dos exemplos
     if (entry.examples.length > 0) {
         const hasValidExamples = entry.examples.every(example => 
             example && 
             typeof example === 'object' &&
             typeof example.yanomami === 'string' &&
-            typeof example.translation === 'string'
+            typeof example.translation === 'string' &&
+            example.yanomami.trim().length > 0 &&
+            example.translation.trim().length > 0
         );
 
         if (!hasValidExamples) {
@@ -287,3 +324,90 @@ function isValidEntry(entry) {
 
     return true;
 }
+
+// Função para formatar a resposta do assistente
+function formatAssistantResponse(entry) {
+    let response = `The word '${entry.word}' in Yanomami means '${entry.translation}'. It is a ${entry.grammar}.`;
+
+    if (entry.related_forms && entry.related_forms.length > 0) {
+        response += `\n\nRelated forms: ${entry.related_forms.join(', ')}`;
+    }
+
+    if (entry.examples && entry.examples.length > 0) {
+        response += '\n\nHere are some examples:\n\n';
+        response += entry.examples
+            .map(ex => `- ${ex.yanomami}\n  Translation: ${ex.translation}`)
+            .join('\n\n');
+    }
+
+    return response;
+}
+
+/**
+ * Merge repeated outputs for the same query into a single entry
+ * @param {Array} dataset - Array of dataset entries to be merged
+ * @returns {Array} - Array with merged entries for duplicate queries
+ */
+function mergeRepeatedOutputs(dataset) {
+    // Group entries by user query
+    const groupedByQuery = {};
+    
+    for (const entry of dataset) {
+        const userQuery = entry.messages[0].content;
+        
+        if (!groupedByQuery[userQuery]) {
+            groupedByQuery[userQuery] = [];
+        }
+        
+        groupedByQuery[userQuery].push(entry);
+    }
+    
+    // Process each group of entries with the same query
+    const mergedDataset = [];
+    
+    for (const query in groupedByQuery) {
+        const entriesForQuery = groupedByQuery[query];
+        
+        // If there's only one entry for this query, add it as is
+        if (entriesForQuery.length === 1) {
+            mergedDataset.push(entriesForQuery[0]);
+            continue;
+        }
+        
+        // Merge multiple entries for the same query
+        const mergedEntry = {
+            messages: [
+                { role: "user", content: query },
+                { role: "assistant", content: "" }
+            ]
+        };
+        
+        // Combine all assistant responses with a clear separator
+        const combinedContent = entriesForQuery.map(entry => 
+            entry.messages.find(msg => msg.role === "assistant").content
+        ).join("\n\n---\nAlternative interpretation:\n\n");
+        
+        // Set the combined content as the assistant's response
+        mergedEntry.messages[1].content = combinedContent;
+        
+        // Add the merged entry to the result
+        mergedDataset.push(mergedEntry);
+    }
+    
+    return mergedDataset;
+}
+
+// Função para validar a entrada gerada
+function validateEntry(entry, wordIndex) {
+    // Implementar lógica de validação
+    return entry && entry.word && entry.translation;
+}
+
+// Export functions and config
+export {
+    processChunk,
+    isValidEntry,
+    formatAssistantResponse,
+    mergeRepeatedOutputs,
+    validateEntry
+};

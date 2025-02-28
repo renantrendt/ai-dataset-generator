@@ -1,0 +1,24 @@
+# Arquivos e diretórios a serem ignorados pelo npm
+
+# Arquivos de desenvolvimento
+.git
+.github
+.gitignore
+.Notes
+.DS_Store
+*.log
+*.swp
+
+# Diretórios de desenvolvimento
+node_modules
+test
+tests
+coverage
+.vscode
+.idea
+
+# Não ignorar
+!src/
+!ai-dataset-generator/input/
+!ai-dataset-generator/output/
+!README.md

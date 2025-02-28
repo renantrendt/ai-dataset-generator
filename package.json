@@ -1,6 +1,6 @@
 {
   "name": "ai-dataset-generator",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "A tool to generate AI fine-tuning datasets from text files",
   "main": "src/index.js",
   "type": "module",
@@ -26,5 +26,26 @@
     "dotenv": "^16.4.1",
     "glob": "^10.3.10",
     "mkdirp": "^3.0.1"
-  }
+  },
+  "files": [
+    "src/",
+    "ai-dataset-generator/",
+    "ai-dataset-generator/scripts/",
+    "ai-dataset-generator/input/",
+    "ai-dataset-generator/output/",
+    "dataset-template.jsonl",
+    ".env.generator",
+    "README.md"
+  ],
+  "directories": {
+    "src": "src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/renantrendt/ai-dataset-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/renantrendt/ai-dataset-generator/issues"
+  },
+  "homepage": "https://github.com/renantrendt/ai-dataset-generator#readme"
 }
