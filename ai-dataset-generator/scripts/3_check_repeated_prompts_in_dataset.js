@@ -1,3 +1,5 @@
+//Script generates a JSONL output that lists all the duplicated translations generated in the dataset using the command terminal "npx generate" –  not using AI.
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -5,12 +7,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Caminho para o arquivo dataset_2025-02-26T11-00-33-047Z.jsonl
+// Path to the dataset_2025-02-26T11-00-33-047Z.jsonl file
 const datasetFilePath = path.join(__dirname, '..', 'output', 'dataset_2025-02-26T11-00-33-047Z.jsonl');
-// Caminho para o novo arquivo com linhas duplicadas
+// Path to the new file with duplicate lines
 const duplicatesFilePath = path.join(__dirname, '..', 'output', 'dataset_duplicates.jsonl');
 
-// Função para verificar linhas duplicadas no dataset
+// Function to check for duplicate lines in the dataset
 function checkDuplicatesInDataset() {
     fs.readFile(datasetFilePath, 'utf8', (err, data) => {
         if (err) {
@@ -18,25 +20,25 @@ function checkDuplicatesInDataset() {
             return;
         }
 
-        // Divide o conteúdo em linhas
+        // Divide the content into lines
         const lines = data.split('\n').filter(line => line.trim().length > 0);
         const wordCount = {};
         const duplicateLines = [];
 
-        // Processa cada linha do dataset
+        // Process each line of the dataset
         lines.forEach(line => {
             const entry = JSON.parse(line);
             entry.messages.forEach(message => {
                 if (message.role === 'user') {
                     const userPrompt = message.content;
-                    // Extrai palavras entre aspas simples do prompt
+                    // Extract words between single quotes from the prompt
                     const words = userPrompt.match(/'([^']+)'/g);
                     if (words) {
                         words.forEach(word => {
-                            // Remove aspas e conta a palavra
+                            // Remove quotes and count the word
                             const cleanWord = word.replace(/'/g, '');
                             wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
-                            // Se a palavra já foi vista, adiciona a linha ao conjunto de duplicatas
+                            // If the word has already been seen, add the line to the set of duplicates
                             if (wordCount[cleanWord] > 1) {
                                 duplicateLines.push(line);
                             }
@@ -46,7 +48,7 @@ function checkDuplicatesInDataset() {
             });
         });
 
-        // Escreve as linhas duplicadas em um novo arquivo
+        // Write the duplicate lines to a new file
         fs.writeFile(duplicatesFilePath, duplicateLines.join('\n'), 'utf8', (err) => {
             if (err) {
                 console.error('Error writing the file:', err);
@@ -57,5 +59,5 @@ function checkDuplicatesInDataset() {
     });
 }
 
-// Executa a função
+// Execute the function
 checkDuplicatesInDataset();

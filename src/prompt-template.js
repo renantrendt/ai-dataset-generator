@@ -1,3 +1,5 @@
+//Script generates a JSONL output listing the main Yanomami words from the input file, by using the command terminal "npx generate" – using AI.
+
 import Anthropic from '@anthropic-ai/sdk';
 
 /**

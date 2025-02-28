@@ -1,3 +1,5 @@
+// Script generate JSONL output with contextual usage examples queries in English about how/when to use specifics Yanomami words – NOT using AI
+
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
