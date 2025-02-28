@@ -1,18 +1,16 @@
-//Script generates a JSONL output that list all the words from the dictionary that is not at "4_cleaned..." – NOT using AI
-
 const fs = require('fs');
 const path = require('path');
 
-// Path to the file with unique words
+// Caminho para o arquivo com palavras únicas
 const uniqueWordsFilePath = path.join(__dirname, '..', 'output', '1_count_words.txt');
-// Path to the file with merged answers
+// Caminho para o arquivo com respostas mescladas
 const mergedAnswersFilePath = path.join(__dirname, '..', 'output', '4_cleaned_dataset_merging_duplicated_prompts.jsonl');
-// Path to the new file with missing words
+// Caminho para o novo arquivo com palavras ausentes
 const missingWordsFilePath = path.join(__dirname, '..', 'output', '5_14k_words_to_be_translated.jsonl');
 
-// Function to find missing words in answers
+// Função para encontrar palavras ausentes
 function findMissingWordsInAnswers() {
-    // Reads the unique words file
+    // Lê o arquivo de palavras únicas
     fs.readFile(uniqueWordsFilePath, 'utf8', (err, uniqueData) => {
         if (err) {
             console.error('Error reading unique words file:', err);
@@ -21,7 +19,7 @@ function findMissingWordsInAnswers() {
 
         const uniqueWords = uniqueData.split('\n').filter(word => word.trim().length > 0);
 
-        // Reads the merged answers file
+        // Lê o arquivo de respostas mescladas
         fs.readFile(mergedAnswersFilePath, 'utf8', (err, mergedData) => {
             if (err) {
                 console.error('Error reading merged answers file:', err);
@@ -29,12 +27,12 @@ function findMissingWordsInAnswers() {
             }
 
             const mergedLines = mergedData.split('\n').filter(line => line.trim().length > 0);
-            const mergedText = mergedLines.join(' '); // Combines all lines into a single text
+            const mergedText = mergedLines.join(' '); // Combina todas as linhas em um único texto
 
-            // Finds missing words
+            // Encontra palavras ausentes
             const missingWords = uniqueWords.filter(word => !mergedText.includes(word));
 
-            // Writes missing words to a new file
+            // Escreve as palavras ausentes em um novo arquivo
             fs.writeFile(missingWordsFilePath, missingWords.join('\n'), 'utf8', (err) => {
                 if (err) {
                     console.error('Error writing missing words file:', err);
@@ -46,5 +44,5 @@ function findMissingWordsInAnswers() {
     });
 }
 
-// Executes the function
+// Executa a função
 findMissingWordsInAnswers();

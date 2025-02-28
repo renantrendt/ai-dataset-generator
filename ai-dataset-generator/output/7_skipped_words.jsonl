@@ -1,7 +1,3 @@
-// Script 7_translate_missing_words_with_claude.js generate JSONL output with full translation from all 100% of Yanomami words found in the document – using AI
-// It generate a file to debug and another with skipped words. You can change the name of the input file here and then re-run the code
-
-
 karohi
 akatahumai
 irani
@@ -36,8 +32,8 @@ tëreiwei
 paihou
 tapitapipi
 fãtõ
-totahima
 naﬁ
+totahima
 prithotho
 iyomai
 iyoararei
@@ -195,10 +191,10 @@ tiembla
 {"word":"thΩΩkΩr"}
 {"word":"thΩΩkΩrΩkei"}
 {"word":"thΩΩkΩrΩprai"}
-{"word":"thΩrΩãi"}
 {"word":"thΩΩkΩrΩã"}
 {"word":"thΩΩk"}
 {"word":"thΩrΩ–"}
+{"word":"thΩrΩãi"}
 {"word":"thΩrΩãmai"}
 {"word":"thΩrΩprou"}
 {"word":"thΩrΩrãyou"}

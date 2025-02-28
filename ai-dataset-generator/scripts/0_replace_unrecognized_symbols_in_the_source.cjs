@@ -1,5 +1,3 @@
-//Script generates a JSONL output file that replace unrecognizable symbols to improve reading, this file will be saved at "input folder" – not using AI
-
 const fs = require('fs');
 const path = require('path');
 

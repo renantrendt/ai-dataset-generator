@@ -1,4 +1,3 @@
-//Script generated file – 0_replace_unrecognized_symbols_in_the_source.cjs – it replace unrecognizable symbols to improve reading.
 
 ahete–
 ahe– 1 vb. intr. t a h e a i, inc.: acercar (inicio de un

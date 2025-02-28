@@ -1,5 +1,4 @@
-//Script 1_count_words.js generated this txt output that lists all the Yanomami words in the "input folder file" – using AI.
-
+113
 ahete–
 ahe–
 ahetou
@@ -21419,6 +21418,6 @@ yurimou
 yotuhu–
 yutuyutu
 yuupiprou
-yuupiai
 yuupirayou
 yuuwë
+yuupiai

@@ -1,5 +1,3 @@
-// Script generate JSONL output with queries comparing the difference between Yanomami words and the explanation in English – NOT using AI
-
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';

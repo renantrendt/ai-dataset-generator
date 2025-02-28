@@ -1,5 +1,3 @@
-//Script generates a JSONL output that lists all the translated words generated in the dataset using the command terminal "npx generate" – not using AI.
-
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,12 +5,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Path to the yanomami-words.txt file
+// Caminho para o arquivo yanomami-words.txt
 const filePath = path.join(__dirname, '..', 'output', 'yanomami-words.txt');
-// Path to the new file without duplicates
+// Caminho para o novo arquivo sem duplicatas
 const uniqueFilePath = path.join(__dirname, '..', 'output', 'yanomami-words-unique.txt');
 
-// Function to check for duplicate words and create a new file with unique words
+// Função para verificar palavras duplicadas e criar um novo arquivo com palavras únicas
 function checkDuplicates() {
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
@@ -20,39 +18,39 @@ function checkDuplicates() {
             return;
         }
 
-        // Divide the content into words
+        // Divide o conteúdo em palavras
         const words = data.split('\n').map(word => word.trim()).filter(word => word.length > 0);
         
-        // Create a set to count occurrences
+        // Cria um conjunto para contar as ocorrências
         const wordCount = {};
         words.forEach(word => {
             wordCount[word] = (wordCount[word] || 0) + 1;
         });
 
-        // Filter unique words
+        // Filtra as palavras únicas
         const uniqueWords = Object.keys(wordCount);
 
-        // Write unique words to a new file
+        // Escreve as palavras únicas em um novo arquivo
         fs.writeFile(uniqueFilePath, uniqueWords.join('\n'), 'utf8', (err) => {
             if (err) {
                 console.error('Error writing the file:', err);
                 return;
             }
-            console.log(`File with unique words created at: ${uniqueFilePath}`);
+            console.log(`Arquivo com palavras únicas criado em: ${uniqueFilePath}`);
         });
 
-        // Display duplicate words
+        // Exibe as palavras duplicadas
         const duplicates = Object.entries(wordCount).filter(([word, count]) => count > 1);
         if (duplicates.length > 0) {
-            console.log('Duplicate words found:');
+            console.log('Palavras duplicadas encontradas:');
             duplicates.forEach(([word, count]) => {
-                console.log(`- ${word}: ${count} times`);
+                console.log(`- ${word}: ${count} vezes`);
             });
         } else {
-            console.log('No duplicate words found.');
+            console.log('Nenhuma palavra duplicada encontrada.');
         }
     });
 }
 
-// Execute the function
+// Executa a função
 checkDuplicates();

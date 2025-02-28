@@ -1,5 +1,3 @@
-//Script generates a TXT output that lists all the Yanomami words in the "input folder file" using AI.
-
 import fs from 'fs';
 import { Anthropic } from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
@@ -36,48 +34,48 @@ function loadEnvConfig() {
 // Load environment variables
 loadEnvConfig();
 
-// Reads the file
+// Lê o arquivo
 const content = fs.readFileSync('/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/input/modified-dictionary.txt', 'utf8');
 
-// Extract Yanomami words
+// Extrai palavras Yanomami
 const entries = content.split('\n\n');
 
-// Collect candidate words, removing symbols and numbers
+// Coleta palavras candidatas, removendo símbolos e números
 const candidateWords = new Set();
 entries.forEach(entry => {
-    const words = entry.split(/\s+/); // Divide by spaces
+    const words = entry.split(/\s+/); // Divide por espaços
     words.forEach(word => {
-        // Remove symbols, numbers, and extra spaces
+        // Remove símbolos, números e espaços extras
         word = word.replace(/[\[\]()\{\},;:.+\/]/g, '').trim();
         if (word.length === 0) return;
         
-        // Unify letters with spaces between them
+        // Unifica letras com espaço entre elas
         word = word.replace(/\s+/g, '');
         
         candidateWords.add(word);
     });
 });
 
-console.log(`Total candidate words: ${candidateWords.size}`);
+console.log(`Total de palavras candidatas: ${candidateWords.size}`);
 
-// Initialize Anthropic client
+// Inicializa cliente Anthropic
 const anthropic = new Anthropic({
     apiKey: process.env.DATASET_GEN_ANTHROPIC_KEY
 });
 
-// Function to classify words in batches using Claude AI
+// Função para classificar palavras em lotes usando Claude AI
 async function classifyWordBatches(words, batchSize = 100) {
     const batches = [];
     const allWords = Array.from(words);
     
-    // Divide into batches
+    // Divide em lotes
     for (let i = 0; i < allWords.length; i += batchSize) {
         batches.push(allWords.slice(i, i + batchSize));
     }
     
-    console.log(`Processing ${batches.length} batches of words...`);
+    console.log(`Processando ${batches.length} lotes de palavras...`);
     
-    // Create the output file or clear it if it already exists
+    // Cria o arquivo de saída ou limpa se já existir
     const outputFilePath = '/Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/output/yanomami-words.txt';
     fs.writeFileSync(outputFilePath, '', 'utf8');
     
@@ -85,7 +83,7 @@ async function classifyWordBatches(words, batchSize = 100) {
     
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
-        console.log(`Processing batch ${i+1}/${batches.length} with ${batch.length} words...`);
+        console.log(`Processando lote ${i+1}/${batches.length} com ${batch.length} palavras...`);
         
         try {
             const response = await anthropic.messages.create({
@@ -112,37 +110,37 @@ async function classifyWordBatches(words, batchSize = 100) {
                 .map(word => word.trim())
                 .filter(word => word.length > 0);
             
-            // Save the words from this batch immediately to the file
+            // Salva as palavras deste lote imediatamente no arquivo
             if (filteredWords.length > 0) {
                 fs.appendFileSync(outputFilePath, filteredWords.join('\n') + '\n', 'utf8');
                 totalYanomamWords += filteredWords.length;
-                console.log(`Yanomami words identified in this batch: ${filteredWords.length}`);
-                console.log(`Total Yanomami words so far: ${totalYanomamWords}`);
+                console.log(`Palavras Yanomami identificadas neste lote: ${filteredWords.length}`);
+                console.log(`Total de palavras Yanomami até agora: ${totalYanomamWords}`);
             } else {
-                console.log(`No Yanomami words identified in this batch.`);
+                console.log(`Nenhuma palavra Yanomami identificada neste lote.`);
             }
             
-            // Wait a bit between batches to avoid API limitations
+            // Aguarde um pouco entre lotes para evitar limitações de API
             await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-            console.error(`Error processing batch ${i+1}: ${error.message}`);
+            console.error(`Erro ao processar lote ${i+1}: ${error.message}`);
         }
     }
     
     return totalYanomamWords;
 }
 
-// Execute the process
+// Executa o processo
 (async () => {
     try {
-        console.log("Starting Yanomami word classification...");
+        console.log("Iniciando classificação de palavras Yanomami vs. Espanhol...");
         const totalYanomamWords = await classifyWordBatches(candidateWords);
         
-        // Display the total number of words
-        console.log(`\nProcessing completed!`);
-        console.log(`Total unique Yanomami words identified: ${totalYanomamWords}`);
-        console.log(`List of Yanomami words saved to: /Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/output/yanomami-words.txt`);
+        // Exibe o total de palavras
+        console.log(`\nProcessamento concluído!`);
+        console.log(`Total de palavras Yanomami únicas identificadas: ${totalYanomamWords}`);
+        console.log(`Lista de palavras Yanomami salva em: /Users/renanserrano/CascadeProjects/Yanomami/AiDatasetGeneratorFineTunning/ai-dataset-generator/output/yanomami-words.txt`);
     } catch (error) {
-        console.error(`Error executing the script: ${error.message}`);
+        console.error(`Erro ao executar o script: ${error.message}`);
     }
 })();
