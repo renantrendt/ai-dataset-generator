@@ -2,7 +2,16 @@
 
 A simple tool for generating AI fine-tuning datasets from text files is available. This tool processes text files and creates a JSONL dataset for fine-tuning AI models.
 
-I was inspired to create this NPM package because I am fine-tuning an AI model to interpret the Yanomami language, which is spoken by an indigenous tribe in the Amazon. I received a curated dictionary with approximately 3000 words, and with this package, I was able to expand it to around 17000 translations. Additionally, using the included scripts, I generated datasets with phrases from English to Yanomami and vice versa, contextual usage, comparison queries, and grammar queries.
+I was inspired to create this NPM package because I am fine-tuning an AI model to interpret the Yanomami language, which is spoken by an indigenous tribe in the Amazon. I received a curated dictionary with approximately 3000 words, and with this package, I was able to:
+- Generate approximately 2700 prompts
+
+Using the scripts folder I was able to generate:
+- Expansion of the dataset to 14000 additional translations by interpreting the patterns of expressions contained in the explanation of the 27000 prompts generated
+- Additional dataset with phrases from English to Yanomami
+- Additional dataset with phrases from Yanomami to English
+- Additional dataset with contextual usage
+- Additional dataset with comparison queries
+- Additional dataset with grammar queries
 
 All the generated outputs are located within the folders so that you can see real use cases, learn, and adapt. If you need help, please reach out to me via email on my website: renanserrano.com.br
 
