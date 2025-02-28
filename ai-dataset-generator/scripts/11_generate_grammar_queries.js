@@ -1,3 +1,5 @@
+// Script 11_generate_grammar_queries.js generate JSONL output with translation grammar queries in English to Yanomami using AI
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

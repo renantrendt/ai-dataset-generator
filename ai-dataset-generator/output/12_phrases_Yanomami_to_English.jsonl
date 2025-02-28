@@ -1,3 +1,6 @@
+// Script 12_generate_phrases_Yanomami_to_English.js generate JSONL output with translation phrases from Yanomami to English using AI
+
+
 {"messages":[{"role":"user","content":"Translate this Yanomami phrase to English: \"thë aheai\""},{"role":"assistant","content":"\"The natural English translation for 'thë aheai' is 'the sun is rising'.\nLiteral: 'The sun rises'.\""}]}
 {"messages":[{"role":"user","content":"Translate this Yanomami phrase to English: \"thë aheo\""},{"role":"assistant","content":"\"The natural English translation for 'thë aheo' is 'the sun is setting'.\""}]}
 {"messages":[{"role":"user","content":"Translate this Yanomami phrase to English: \"pei yoka ha a ahetou tëhë a husi koikoimoma\""},{"role":"assistant","content":"\"The natural English translation for 'pei yoka ha a ahetou tëhë a husi koikoimoma' is 'the children are playing with the puppy'.\nLiteral: 'Children small the puppy with the play play'.\""}]}

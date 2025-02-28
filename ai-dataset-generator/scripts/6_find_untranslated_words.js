@@ -1,3 +1,5 @@
+//Script generates a JSONL output that removes duplicated words listed in the file "5_14kwords..." It also normalizes the words and double-checks if they are not already present in the file "4_cleaned..." – NOT using AI
+
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,14 +8,14 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Caminhos dos arquivos
+// File paths
 const cleanedDatasetPath = path.join(__dirname, '..', 'output', '4_cleaned_dataset_merging_duplicated_prompts.jsonl');
 const wordsToTranslatePath = path.join(__dirname, '..', 'output', '5_14k_words_to_be_translated.jsonl');
 const outputPath = path.join(__dirname, '..', 'output', '6_words_missing_from_translations.jsonl');
 
-// Função para normalizar palavras (remover hifens)
+// Function to normalize words (remove hyphens)
 function normalizeWord(word) {
-  // Remove hifens no início, meio ou fim da palavra
+  // Remove hyphens at the beginning, middle or end of the word
   return word.replace(/^–+|–+$/g, '').toLowerCase();
 }
 
@@ -21,7 +23,7 @@ async function findMissingWords() {
   try {
     console.log('Starting processing...');
     
-    // Ler o arquivo de palavras a serem traduzidas
+    // Read the file of words to be translated
     const wordsToTranslateContent = await fs.readFile(wordsToTranslatePath, 'utf8');
     const wordsToTranslate = wordsToTranslateContent.split('\n')
       .filter(word => word.trim() !== '')
@@ -32,25 +34,25 @@ async function findMissingWords() {
     
     console.log(`Read ${wordsToTranslate.length} words from the words to be translated file.`);
     
-    // Ler o arquivo de dataset limpo
+    // Read the cleaned dataset file
     const cleanedDatasetContent = await fs.readFile(cleanedDatasetPath, 'utf8');
     const lines = cleanedDatasetContent.split('\n').filter(line => line.trim() !== '');
     
-    // Conjunto para armazenar palavras normalizadas encontradas
+    // Set to store found normalized words
     const foundNormalizedWords = new Set();
     
-    // Processar cada linha do dataset
+    // Process each line of the dataset
     for (const line of lines) {
       try {
         const entry = JSON.parse(line);
         
-        // Procurar apenas em mensagens do usuário
+        // Search only in user messages
         const userMessages = entry.messages.filter(msg => msg.role === 'user');
         
         for (const message of userMessages) {
           const content = message.content;
           
-          // Extrair palavras entre aspas simples
+          // Extract words between single quotes
           const quotedWordsRegex = /'([^']+)'/g;
           let match;
           
@@ -68,15 +70,15 @@ async function findMissingWords() {
     
     console.log(`Found ${foundNormalizedWords.size} unique words in quotes in the user content.`);
     
-    // Encontrar palavras que não estão entre aspas
+    // Find words that are not in quotes
     const missingWords = wordsToTranslate.filter(word => !foundNormalizedWords.has(word.normalized));
     
     console.log(`Found ${missingWords.length} words that are not in quotes.`);
     
-    // Estatísticas
+    // Statistics
     console.log(`Percentage of missing words: ${(missingWords.length / wordsToTranslate.length * 100).toFixed(2)}%`);
     
-    // Escrever as palavras não encontradas no arquivo de saída
+    // Write the missing words to the output file
     await fs.writeFile(outputPath, missingWords.map(word => word.original).join('\n'));
     
     console.log(`Missing words saved in: ${outputPath}`);

@@ -1,6 +1,4 @@
-// 12_generate_phrases_Yanomami_to_English.js
-// Script to translate complete phrases from Yanomami to English using Claude AI
-// Based on the structure of 11_generate_grammar_queries.js
+// Script 12_generate_phrases_Yanomami_to_English.js generate JSONL output with translation phrases from Yanomami to English using AI
 
 import dotenv from 'dotenv';
 import fs from 'fs';

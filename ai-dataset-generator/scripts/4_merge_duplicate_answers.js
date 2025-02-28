@@ -1,3 +1,5 @@
+//Script generates a JSONL output that merge duplicated translations generate at the dataset using the command terminal "npx generate" – NOT using AI
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -5,12 +7,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Caminho para o arquivo com duplicatas
+// Path to the file with duplicates
 const duplicatesFilePath = path.join(__dirname, '..', 'output', 'dataset_2025-02-26T11-00-33-047Z.jsonl');
-// Caminho para o novo arquivo com respostas mescladas
+// Path to the new file with merged answers
 const mergedFilePath = path.join(__dirname, '..', 'output', 'merged_answers-from-original.jsonl');
 
-// Função para mesclar respostas duplicadas
+// Function to merge duplicate answers
 function mergeDuplicateAnswers() {
     fs.readFile(duplicatesFilePath, 'utf8', (err, data) => {
         if (err) {
@@ -18,17 +20,17 @@ function mergeDuplicateAnswers() {
             return;
         }
 
-        // Divide o conteúdo em linhas
+        // Divide the content into lines
         const lines = data.split('\n').filter(line => line.trim().length > 0);
         const mergedAnswers = {};
 
-        // Processa cada linha do dataset
+        // Process each line of the dataset
         lines.forEach(line => {
             const entry = JSON.parse(line);
             const userPrompt = entry.messages[0].content;
             const assistantResponse = entry.messages[1].content;
 
-            // Extrai a palavra da pergunta do usuário
+            // Extract the word from the user's question
             const wordMatch = userPrompt.match(/'([^']+)'/);
             if (wordMatch) {
                 const word = wordMatch[1];
@@ -39,13 +41,13 @@ function mergeDuplicateAnswers() {
             }
         });
 
-        // Cria o conteúdo para o arquivo de saída
+        // Create the content for the output file
         const outputContent = Object.entries(mergedAnswers).map(([word, responses]) => {
             const combinedResponse = `It can be ${responses.join(' and also it can be ')}.`;
             return JSON.stringify({ messages: [{ role: 'user', content: `What does '${word}' mean in Yanomami?` }, { role: 'assistant', content: combinedResponse }] });
         }).join('\n');
 
-        // Escreve as respostas mescladas em um novo arquivo
+        // Write the merged answers to a new file
         fs.writeFile(mergedFilePath, outputContent, 'utf8', (err) => {
             if (err) {
                 console.error('Error writing the file:', err);
@@ -56,5 +58,5 @@ function mergeDuplicateAnswers() {
     });
 }
 
-// Executa a função
+// Execute the function
 mergeDuplicateAnswers();

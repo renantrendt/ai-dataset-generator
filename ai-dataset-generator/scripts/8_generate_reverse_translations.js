@@ -1,3 +1,5 @@
+// Script generate JSONL output with queries in English on how to say specific phrases in Yanomami – NOT using AI
+
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';

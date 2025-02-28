@@ -1,3 +1,5 @@
+//Script 6_find_untranslated_words.js generates a JSONL output that removes duplicated words listed in the file "5_14kwords..." It also normalizes the words and double-checks if they are not already present in the file "4_cleaned..." – NOT using AI
+
 aheprariyo
 ahetoimi
 hetuo
