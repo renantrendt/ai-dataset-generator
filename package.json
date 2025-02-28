@@ -1,6 +1,6 @@
 {
   "name": "ai-dataset-generator",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A tool to generate AI fine-tuning datasets from text files",
   "main": "src/index.js",
   "type": "module",
