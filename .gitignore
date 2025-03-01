@@ -4,6 +4,7 @@ npm-debug.log
 
 # Environment
 .Notes
+ai-dataset-generator/.env.generator
 
 
 # Generated files
