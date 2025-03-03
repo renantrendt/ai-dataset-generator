@@ -192,6 +192,15 @@ To customize the source code:
 5. Star the project on github
 6. Contact me at https://www.renanserrano.com.br
 
+## Models & Repositories
+### Models & Repositories
+- **Fine-tuned Model (Hugging Face)**: [renanserrano/yanomami-finetuning](https://huggingface.co/renanserrano/yanomami-finetuning)
+- **GitHub Repository**: [renantrendt/yanomami-finetuning](https://github.com/renantrendt/yanomami-finetuning)
+- **Dataset (Hugging Face)**: [renanserrano/yanomami](https://huggingface.co/datasets/renanserrano/yanomami)
+
+- **Dataset Generator (NPM)**: [ai-dataset-generator](https://www.npmjs.com/package/ai-dataset-generator)
+- **Dataset Generator (GitHub)**: [renantrendt/ai-dataset-generator](https://github.com/renantrendt/ai-dataset-generator)
+
 ## License
 
 MIT
